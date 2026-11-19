@@ -1,0 +1,13 @@
+# Line endings are normalised to LF in the repository; Windows checkouts get CRLF.
+* text=auto
+
+# Binary files: never touch their bytes
+*.pdf binary
+*.png binary
+*.jar binary
+*.zip binary
+*.ap20 binary
+
+# TIA external sources and PowerShell: CRLF in the working copy (Windows tools)
+*.scl text eol=crlf
+*.ps1 text eol=crlf

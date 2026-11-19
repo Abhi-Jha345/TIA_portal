@@ -1,0 +1,85 @@
+name: CI
+
+# Runs on every push and pull request. No TIA Portal or PLCSIM needed: the tests execute the
+# real SCL sources in the scan-based test runtime (tests/scl_runtime.py).
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:          # reused by the release workflow, so a release is never built untested
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: SCL checks and unit tests
+    runs-on: ubuntu-latest
+    env:
+      SCL_MIN_COVERAGE: "95"                       # quality gate: SCL decision coverage in %
+      SCL_COVERAGE_REPORT: scl-coverage.md
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install test dependencies
+        run: pip install -r tests/requirements.txt
+
+      - name: SCL sources are ASCII only (TIA import rule)
+        run: python tools/check_scl_ascii.py
+
+      - name: Block versions (every changed FB/FC/DB/UDT needs a new VERSION)
+        run: |
+          python tools/block_versions.py check
+          python tools/block_versions.py table >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Unit tests + SCL decision coverage gate
+        run: python -m pytest tests -q -p no:cacheprovider --junitxml=test-results.xml
+
+      - name: Publish summary
+        if: always()
+        run: |
+          if [ -f tests/scl-coverage.md ]; then cat tests/scl-coverage.md >> "$GITHUB_STEP_SUMMARY"; fi
+          if [ -f scl-coverage.md ]; then cat scl-coverage.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Class diagram is up to date with the code
+        run: |
+          python tools/scl_to_plantuml.py generated.puml
+          diff -u docs/uml/01_class_blocks.puml generated.puml || {
+            echo "::error::docs/uml/01_class_blocks.puml is stale: run python tools/scl_to_plantuml.py"; exit 1; }
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Render UML diagrams (PNG + SVG)
+        env:
+          PLANTUML_VERSION: "1.2024.7"
+        run: |
+          curl -sSL -o plantuml.jar \
+            "https://github.com/plantuml/plantuml/releases/download/v${PLANTUML_VERSION}/plantuml-${PLANTUML_VERSION}.jar"
+          java -jar plantuml.jar -checkonly docs/uml/*.puml
+          java -jar plantuml.jar -tpng -o rendered docs/uml/*.puml
+          java -jar plantuml.jar -tsvg -o rendered docs/uml/*.puml
+
+      - name: Upload UML diagrams
+        uses: actions/upload-artifact@v4
+        with:
+          name: uml-diagrams
+          path: docs/uml/rendered/
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: |
+            test-results.xml
+            scl-coverage.md
+            tests/scl-coverage.md
+          if-no-files-found: ignore

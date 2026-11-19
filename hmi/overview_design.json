@@ -1,0 +1,1670 @@
+{
+ "screen": {
+  "BackColor": "0xFF0D1117",
+  "Width": 1920,
+  "Height": 1080
+ },
+ "items": [
+  {
+   "name": "hdr",
+   "type": "Rectangle",
+   "left": 0,
+   "top": 0,
+   "width": 1920,
+   "height": 88,
+   "properties": {
+    "BackColor": "0xFF161B22",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "hdr_accent",
+   "type": "Rectangle",
+   "left": 0,
+   "top": 86,
+   "width": 1920,
+   "height": 2,
+   "properties": {
+    "BackColor": "0xFF00A3B4",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "hdr_title",
+   "type": "Text",
+   "left": 32,
+   "top": 14,
+   "width": 900,
+   "height": 40,
+   "text": "Battery Cell Test & Sort Station",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 26,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "hdr_sub",
+   "type": "Text",
+   "left": 32,
+   "top": 52,
+   "width": 900,
+   "height": 24,
+   "text": "S7-1500  |  cell grading A / B / Reject",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "hdr_badge",
+   "type": "Rectangle",
+   "left": 1380,
+   "top": 20,
+   "width": 508,
+   "height": 48,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderColor": "0xFF00A3B4",
+    "BorderWidth": 2
+   }
+  },
+  {
+   "name": "hdr_badge_l",
+   "type": "Text",
+   "left": 1400,
+   "top": 32,
+   "width": 90,
+   "height": 24,
+   "text": "STATE",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "io_state",
+   "type": "IOField",
+   "left": 1490,
+   "top": 26,
+   "width": 380,
+   "height": 36,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFF00A3B4",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 20,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "lmp_fault_off",
+   "type": "Rectangle",
+   "left": 1336,
+   "top": 32,
+   "width": 24,
+   "height": 24,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "lmp_fault_on",
+   "type": "Rectangle",
+   "left": 1336,
+   "top": 32,
+   "width": 24,
+   "height": 24,
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "lmp_fault_l",
+   "type": "Text",
+   "left": 1374,
+   "top": 30,
+   "width": 260,
+   "height": 28,
+   "text": "",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "p_op",
+   "type": "Rectangle",
+   "left": 32,
+   "top": 112,
+   "width": 360,
+   "height": 936,
+   "properties": {
+    "BackColor": "0xFF161B22",
+    "BorderColor": "0xFF2A3441",
+    "BorderWidth": 1
+   }
+  },
+  {
+   "name": "p_op_t",
+   "type": "Text",
+   "left": 56,
+   "top": 128,
+   "width": 312,
+   "height": 28,
+   "text": "OPERATION",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "btn_start",
+   "type": "Button",
+   "left": 56,
+   "top": 168,
+   "width": 312,
+   "height": 72,
+   "text": "START",
+   "properties": {
+    "BackColor": "0xFF2EA043",
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 18,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "btn_stop",
+   "type": "Button",
+   "left": 56,
+   "top": 256,
+   "width": 312,
+   "height": 72,
+   "text": "STOP",
+   "properties": {
+    "BackColor": "0xFFD29922",
+    "ForeColor": "0xFF0D1117"
+   },
+   "font": {
+    "Size": 18,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "btn_reset",
+   "type": "Button",
+   "left": 56,
+   "top": 344,
+   "width": 312,
+   "height": 72,
+   "text": "RESET",
+   "properties": {
+    "BackColor": "0xFF00A3B4",
+    "ForeColor": "0xFF0D1117"
+   },
+   "font": {
+    "Size": 18,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "op_note",
+   "type": "Text",
+   "left": 56,
+   "top": 428,
+   "width": 312,
+   "height": 44,
+   "text": "Stop is executed at the end of the current cycle.",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "btn_bins",
+   "type": "Button",
+   "left": 56,
+   "top": 500,
+   "width": 312,
+   "height": 60,
+   "text": "BINS EMPTIED",
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 18,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "btn_rcnt",
+   "type": "Button",
+   "left": 56,
+   "top": 576,
+   "width": 312,
+   "height": 60,
+   "text": "RESET COUNTERS",
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 18,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "sim_t",
+   "type": "Text",
+   "left": 56,
+   "top": 680,
+   "width": 312,
+   "height": 28,
+   "text": "SIMULATION",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "btn_estop",
+   "type": "Button",
+   "left": 56,
+   "top": 724,
+   "width": 312,
+   "height": 72,
+   "text": "E-STOP  (hold)",
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 18,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "btn_jam",
+   "type": "Button",
+   "left": 56,
+   "top": 812,
+   "width": 312,
+   "height": 60,
+   "text": "JAM PUSHER B  (hold)",
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 18,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "sim_note",
+   "type": "Text",
+   "left": 56,
+   "top": 884,
+   "width": 312,
+   "height": 60,
+   "text": "Fault injection for the demo: both raise an alarm and abort the station.",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "p_proc",
+   "type": "Rectangle",
+   "left": 416,
+   "top": 112,
+   "width": 1000,
+   "height": 600,
+   "properties": {
+    "BackColor": "0xFF161B22",
+    "BorderColor": "0xFF2A3441",
+    "BorderWidth": 1
+   }
+  },
+  {
+   "name": "p_proc_t",
+   "type": "Text",
+   "left": 440,
+   "top": 128,
+   "width": 952,
+   "height": 28,
+   "text": "PROCESS",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "binB",
+   "type": "Rectangle",
+   "left": 786,
+   "top": 168,
+   "width": 200,
+   "height": 96,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderColor": "0xFF2A3441",
+    "BorderWidth": 2
+   }
+  },
+  {
+   "name": "binB_l",
+   "type": "Text",
+   "left": 806,
+   "top": 178,
+   "width": 160,
+   "height": 24,
+   "text": "BIN B",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "io_binB",
+   "type": "IOField",
+   "left": 806,
+   "top": 206,
+   "width": 160,
+   "height": 44,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 24,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "binR",
+   "type": "Rectangle",
+   "left": 786,
+   "top": 584,
+   "width": 200,
+   "height": 96,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderColor": "0xFF2A3441",
+    "BorderWidth": 2
+   }
+  },
+  {
+   "name": "binR_l",
+   "type": "Text",
+   "left": 806,
+   "top": 594,
+   "width": 160,
+   "height": 24,
+   "text": "REJECT BIN",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "io_binR",
+   "type": "IOField",
+   "left": 806,
+   "top": 622,
+   "width": 160,
+   "height": 44,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 24,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "pB_off",
+   "type": "Rectangle",
+   "left": 866,
+   "top": 284,
+   "width": 40,
+   "height": 40,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "pB_on",
+   "type": "Rectangle",
+   "left": 866,
+   "top": 284,
+   "width": 40,
+   "height": 40,
+   "properties": {
+    "BackColor": "0xFFD29922",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "pB_l",
+   "type": "Text",
+   "left": 920,
+   "top": 282,
+   "width": 260,
+   "height": 44,
+   "text": "",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "pR_off",
+   "type": "Rectangle",
+   "left": 866,
+   "top": 528,
+   "width": 40,
+   "height": 40,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "pR_on",
+   "type": "Rectangle",
+   "left": 866,
+   "top": 528,
+   "width": 40,
+   "height": 40,
+   "properties": {
+    "BackColor": "0xFFD29922",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "pR_l",
+   "type": "Text",
+   "left": 920,
+   "top": 526,
+   "width": 260,
+   "height": 44,
+   "text": "",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "conv_off",
+   "type": "Rectangle",
+   "left": 456,
+   "top": 404,
+   "width": 920,
+   "height": 44,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "conv_on",
+   "type": "Rectangle",
+   "left": 456,
+   "top": 404,
+   "width": 920,
+   "height": 44,
+   "properties": {
+    "BackColor": "0xFF00A3B4",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "station",
+   "type": "Rectangle",
+   "left": 826,
+   "top": 340,
+   "width": 120,
+   "height": 172,
+   "properties": {
+    "BackColor": "0x00000000",
+    "BorderColor": "0xFFE6EDF3",
+    "BorderWidth": 2
+   }
+  },
+  {
+   "name": "station_l",
+   "type": "Text",
+   "left": 806,
+   "top": 344,
+   "width": 160,
+   "height": 22,
+   "text": "",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 12,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "cell",
+   "type": "Rectangle",
+   "left": 856,
+   "top": 396,
+   "width": 60,
+   "height": 60,
+   "properties": {
+    "BackColor": "0xFF2EA043",
+    "BorderColor": "0xFFE6EDF3",
+    "BorderWidth": 2
+   }
+  },
+  {
+   "name": "conv_in",
+   "type": "Text",
+   "left": 456,
+   "top": 458,
+   "width": 300,
+   "height": 24,
+   "text": "infeed",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "conv_out",
+   "type": "Text",
+   "left": 1196,
+   "top": 458,
+   "width": 180,
+   "height": 24,
+   "text": "to module assembly  >",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "meas_l",
+   "type": "Text",
+   "left": 960,
+   "top": 352,
+   "width": 200,
+   "height": 24,
+   "text": "MEASURING",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 13,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "l_conv_off",
+   "type": "Rectangle",
+   "left": 456,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_conv_on",
+   "type": "Rectangle",
+   "left": 456,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFF00A3B4",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_conv_l",
+   "type": "Text",
+   "left": 490,
+   "top": 648,
+   "width": 260,
+   "height": 24,
+   "text": "Conveyor",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "l_cell_off",
+   "type": "Rectangle",
+   "left": 640,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_cell_on",
+   "type": "Rectangle",
+   "left": 640,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFF2EA043",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_cell_l",
+   "type": "Text",
+   "left": 674,
+   "top": 648,
+   "width": 260,
+   "height": 24,
+   "text": "Cell present",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "l_meas_off",
+   "type": "Rectangle",
+   "left": 1030,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_meas_on",
+   "type": "Rectangle",
+   "left": 1030,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFF00A3B4",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_meas_l",
+   "type": "Text",
+   "left": 1064,
+   "top": 648,
+   "width": 260,
+   "height": 24,
+   "text": "Measuring",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "l_stop_off",
+   "type": "Rectangle",
+   "left": 1210,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_stop_on",
+   "type": "Rectangle",
+   "left": 1210,
+   "top": 650,
+   "width": 20,
+   "height": 20,
+   "properties": {
+    "BackColor": "0xFFD29922",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "l_stop_l",
+   "type": "Text",
+   "left": 1244,
+   "top": 648,
+   "width": 260,
+   "height": 24,
+   "text": "Stop pending",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "p_kpi",
+   "type": "Rectangle",
+   "left": 1440,
+   "top": 112,
+   "width": 448,
+   "height": 600,
+   "properties": {
+    "BackColor": "0xFF161B22",
+    "BorderColor": "0xFF2A3441",
+    "BorderWidth": 1
+   }
+  },
+  {
+   "name": "p_kpi_t",
+   "type": "Text",
+   "left": 1464,
+   "top": 128,
+   "width": 400,
+   "height": 28,
+   "text": "PRODUCTION",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "kpi0",
+   "type": "Rectangle",
+   "left": 1464,
+   "top": 160,
+   "width": 192,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi0_bar",
+   "type": "Rectangle",
+   "left": 1464,
+   "top": 160,
+   "width": 4,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi0_l",
+   "type": "Text",
+   "left": 1484,
+   "top": 176,
+   "width": 160,
+   "height": 24,
+   "text": "Total cells",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_kpi0",
+   "type": "IOField",
+   "left": 1480,
+   "top": 224,
+   "width": 164,
+   "height": 56,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 34,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "kpi1",
+   "type": "Rectangle",
+   "left": 1672,
+   "top": 160,
+   "width": 192,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi1_bar",
+   "type": "Rectangle",
+   "left": 1672,
+   "top": 160,
+   "width": 4,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFF00A3B4",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi1_l",
+   "type": "Text",
+   "left": 1692,
+   "top": 176,
+   "width": 160,
+   "height": 24,
+   "text": "Yield  %",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_kpi1",
+   "type": "IOField",
+   "left": 1688,
+   "top": 224,
+   "width": 164,
+   "height": 56,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFF00A3B4",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 34,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "kpi2",
+   "type": "Rectangle",
+   "left": 1464,
+   "top": 336,
+   "width": 192,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi2_bar",
+   "type": "Rectangle",
+   "left": 1464,
+   "top": 336,
+   "width": 4,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFF2EA043",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi2_l",
+   "type": "Text",
+   "left": 1484,
+   "top": 352,
+   "width": 160,
+   "height": 24,
+   "text": "Grade A",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_kpi2",
+   "type": "IOField",
+   "left": 1480,
+   "top": 400,
+   "width": 164,
+   "height": 56,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFF2EA043",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 34,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "kpi3",
+   "type": "Rectangle",
+   "left": 1672,
+   "top": 336,
+   "width": 192,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi3_bar",
+   "type": "Rectangle",
+   "left": 1672,
+   "top": 336,
+   "width": 4,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFFD29922",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi3_l",
+   "type": "Text",
+   "left": 1692,
+   "top": 352,
+   "width": 160,
+   "height": 24,
+   "text": "Grade B",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_kpi3",
+   "type": "IOField",
+   "left": 1688,
+   "top": 400,
+   "width": 164,
+   "height": 56,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFD29922",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 34,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "kpi4",
+   "type": "Rectangle",
+   "left": 1464,
+   "top": 512,
+   "width": 192,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi4_bar",
+   "type": "Rectangle",
+   "left": 1464,
+   "top": 512,
+   "width": 4,
+   "height": 160,
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "kpi4_l",
+   "type": "Text",
+   "left": 1484,
+   "top": 528,
+   "width": 160,
+   "height": 24,
+   "text": "Reject",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_kpi4",
+   "type": "IOField",
+   "left": 1480,
+   "top": 576,
+   "width": 164,
+   "height": 56,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFDA3633",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 34,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "p_cell",
+   "type": "Rectangle",
+   "left": 416,
+   "top": 736,
+   "width": 720,
+   "height": 312,
+   "properties": {
+    "BackColor": "0xFF161B22",
+    "BorderColor": "0xFF2A3441",
+    "BorderWidth": 1
+   }
+  },
+  {
+   "name": "p_cell_t",
+   "type": "Text",
+   "left": 440,
+   "top": 752,
+   "width": 672,
+   "height": 28,
+   "text": "LAST CELL",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "lc0_l",
+   "type": "Text",
+   "left": 440,
+   "top": 798,
+   "width": 300,
+   "height": 28,
+   "text": "Cell ID",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_lc0",
+   "type": "IOField",
+   "left": 760,
+   "top": 788,
+   "width": 240,
+   "height": 48,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 24,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "lc0_u",
+   "type": "Text",
+   "left": 1012,
+   "top": 798,
+   "width": 100,
+   "height": 28,
+   "text": "",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "lc1_l",
+   "type": "Text",
+   "left": 440,
+   "top": 860,
+   "width": 300,
+   "height": 28,
+   "text": "Voltage",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_lc1",
+   "type": "IOField",
+   "left": 760,
+   "top": 850,
+   "width": 240,
+   "height": 48,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 24,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "lc1_u",
+   "type": "Text",
+   "left": 1012,
+   "top": 860,
+   "width": 100,
+   "height": 28,
+   "text": "V",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "lc2_l",
+   "type": "Text",
+   "left": 440,
+   "top": 922,
+   "width": 300,
+   "height": 28,
+   "text": "Resistance",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_lc2",
+   "type": "IOField",
+   "left": 760,
+   "top": 912,
+   "width": 240,
+   "height": 48,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 24,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "lc2_u",
+   "type": "Text",
+   "left": 1012,
+   "top": 922,
+   "width": 100,
+   "height": 28,
+   "text": "mOhm",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "lc3_l",
+   "type": "Text",
+   "left": 440,
+   "top": 984,
+   "width": 300,
+   "height": 28,
+   "text": "Grade (1 A / 2 B / 3 Rej)",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "io_lc3",
+   "type": "IOField",
+   "left": 760,
+   "top": 974,
+   "width": 240,
+   "height": 48,
+   "properties": {
+    "BackColor": "0xFF1C2430",
+    "ForeColor": "0xFFE6EDF3",
+    "BorderWidth": 0
+   },
+   "font": {
+    "Size": 24,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "lc3_u",
+   "type": "Text",
+   "left": 1012,
+   "top": 984,
+   "width": 100,
+   "height": 28,
+   "text": "",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "p_alm",
+   "type": "Rectangle",
+   "left": 1160,
+   "top": 736,
+   "width": 728,
+   "height": 312,
+   "properties": {
+    "BackColor": "0xFF161B22",
+    "BorderColor": "0xFF2A3441",
+    "BorderWidth": 1
+   }
+  },
+  {
+   "name": "p_alm_t",
+   "type": "Text",
+   "left": 1184,
+   "top": 752,
+   "width": 680,
+   "height": 28,
+   "text": "ALARMS",
+   "properties": {
+    "ForeColor": "0xFF8B98A5"
+   },
+   "font": {
+    "Size": 14,
+    "Weight": "Bold"
+   }
+  },
+  {
+   "name": "alm0_off",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 792,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm0_on",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 792,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm0_l",
+   "type": "Text",
+   "left": 1224,
+   "top": 790,
+   "width": 260,
+   "height": 26,
+   "text": "E-stop circuit open",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "alm1_off",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 850,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm1_on",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 850,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm1_l",
+   "type": "Text",
+   "left": 1224,
+   "top": 848,
+   "width": 260,
+   "height": 26,
+   "text": "Pusher B end position",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "alm2_off",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 908,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm2_on",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 908,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm2_l",
+   "type": "Text",
+   "left": 1224,
+   "top": 906,
+   "width": 260,
+   "height": 26,
+   "text": "Pusher Reject end position",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "alm3_off",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 966,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm3_on",
+   "type": "Rectangle",
+   "left": 1188,
+   "top": 966,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm3_l",
+   "type": "Text",
+   "left": 1224,
+   "top": 964,
+   "width": 260,
+   "height": 26,
+   "text": "Measuring unit timeout",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "alm4_off",
+   "type": "Rectangle",
+   "left": 1540,
+   "top": 792,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm4_on",
+   "type": "Rectangle",
+   "left": 1540,
+   "top": 792,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFFDA3633",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm4_l",
+   "type": "Text",
+   "left": 1576,
+   "top": 790,
+   "width": 260,
+   "height": 26,
+   "text": "Cell transport timeout",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "alm5_off",
+   "type": "Rectangle",
+   "left": 1540,
+   "top": 850,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm5_on",
+   "type": "Rectangle",
+   "left": 1540,
+   "top": 850,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFFD29922",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm5_l",
+   "type": "Text",
+   "left": 1576,
+   "top": 848,
+   "width": 260,
+   "height": 26,
+   "text": "Bin B full (hold)",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  },
+  {
+   "name": "alm6_off",
+   "type": "Rectangle",
+   "left": 1540,
+   "top": 908,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFF30363D",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm6_on",
+   "type": "Rectangle",
+   "left": 1540,
+   "top": 908,
+   "width": 22,
+   "height": 22,
+   "properties": {
+    "BackColor": "0xFFD29922",
+    "BorderWidth": 0
+   }
+  },
+  {
+   "name": "alm6_l",
+   "type": "Text",
+   "left": 1576,
+   "top": 906,
+   "width": 260,
+   "height": 26,
+   "text": "Reject bin full (hold)",
+   "properties": {
+    "ForeColor": "0xFFE6EDF3"
+   },
+   "font": {
+    "Size": 15,
+    "Weight": "Normal"
+   }
+  }
+ ]
+}

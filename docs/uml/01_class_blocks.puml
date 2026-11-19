@@ -1,0 +1,222 @@
+@startuml scl_class_diagram
+!pragma layout smetana
+title Battery cell sorting station - block structure (generated from src/*.scl)
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor<<FB>> #E8F3F6
+  BackgroundColor<<FC>> #F3F0FA
+  BackgroundColor<<UDT>> #FDF6E3
+  BackgroundColor<<DB>> #EEF5EA
+  BackgroundColor<<OB>> #FBEAEA
+}
+hide empty methods
+
+class "UDT_CellData" as UDT_CellData <<UDT>> {
+  .. v1.0 ..
+  + Id : DInt
+  + Voltage_V : Real
+  + Resistance_mOhm : Real
+  + Grade : Int
+}
+class "UDT_GradeLimits" as UDT_GradeLimits <<UDT>> {
+  .. v1.0 ..
+  + A_VoltMin : Real
+  + A_VoltMax : Real
+  + A_ResMax_mOhm : Real
+  + B_VoltMin : Real
+  + B_VoltMax : Real
+  + B_ResMax_mOhm : Real
+}
+class "UDT_Counters" as UDT_Counters <<UDT>> {
+  .. v1.0 ..
+  + Total : DInt
+  + GradeA : DInt
+  + GradeB : DInt
+  + Reject : DInt
+  + Yield_pct : Real
+}
+class "UDT_Alarms" as UDT_Alarms <<UDT>> {
+  .. v1.0 ..
+  + EStop : Bool
+  + PusherB : Bool
+  + PusherR : Bool
+  + MeasureTimeout : Bool
+  + TransportTimeout : Bool
+  + BinBFull : Bool
+  + BinRFull : Bool
+  + DoorOpen : Bool
+  + SafetyDiscrepancy : Bool
+}
+class "FC_GradeCell" as FC_GradeCell <<FC>> {
+  .. v1.0 ..
+  + return : Int
+  + in Voltage_V : Real
+  + in Resistance_mOhm : Real
+  + in Limits : UDT_GradeLimits
+}
+class "FC_AnyFault" as FC_AnyFault <<FC>> {
+  .. v1.0 ..
+  + return : Bool
+  + in Alarms : UDT_Alarms
+  + in SafetyOk : Bool
+}
+class "FB_Cylinder" as FB_Cylinder <<FB>> {
+  .. v1.0 ..
+  + in CmdExtend : Bool
+  + in SensorExtended : Bool
+  + in SensorRetracted : Bool
+  + in MoveTimeout : Time
+  + in Reset : Bool
+  + out ValveExtend : Bool
+  + out IsExtended : Bool
+  + out IsRetracted : Bool
+  + out Error : Bool
+  + out ErrorCode : Word
+  - errLatched : Bool
+  - errCode : Word
+  - valveOn : Bool
+}
+class "FB_ProcessSim" as FB_ProcessSim <<FB>> {
+  .. v1.0 ..
+  + in ConveyorRun : Bool
+  + in MeasureStart : Bool
+  + in ValvePusherB : Bool
+  + in ValvePusherR : Bool
+  + in FeedEnable : Bool
+  + in JamPusherB : Bool
+  + in AirOk : Bool
+  + out CellAtStation : Bool
+  + out MeasureDone : Bool
+  + out Voltage_V : Real
+  + out Resistance_mOhm : Real
+  + out PusherB_Ext : Bool
+  + out PusherB_Ret : Bool
+  + out PusherR_Ext : Bool
+  + out PusherR_Ret : Bool
+  - cellPresent : Bool
+  - seed : DInt
+  - rnd : Real
+}
+class "FB_DualChannel" as FB_DualChannel <<FB>> {
+  .. v1.0 ..
+  + in ChA : Bool
+  + in ChB : Bool
+  + in DiscrepancyTime : Time
+  + in Ack : Bool
+  + out Ok : Bool
+  + out Discrepancy : Bool
+  - discLatched : Bool
+  - bothOpenSeen : Bool
+}
+class "FB_SafetyMonitor" as FB_SafetyMonitor <<FB>> {
+  .. v1.0 ..
+  + in EStop_A : Bool
+  + in EStop_B : Bool
+  + in Door_A : Bool
+  + in Door_B : Bool
+  + in ResetPB : Bool
+  + in DiscrepancyTime : Time
+  + in Cat1Delay : Time
+  + in ResetStuckTime : Time
+  + out EStopOk : Bool
+  + out DoorClosed : Bool
+  + out SafetyOk : Bool
+  + out EnergyEnable : Bool
+  + out StopCat0 : Bool
+  + out StopCat1 : Bool
+  + out ResetRequired : Bool
+  + out Discrepancy : Bool
+  + out ResetStuck : Bool
+  - resetPBOld : Bool
+  - stuckLatched : Bool
+  - resetEdge : Bool
+  - tripE : Bool
+  - tripD : Bool
+  - released : Bool
+  - energy : Bool
+}
+class "FB_SortStation" as FB_SortStation <<FB>> {
+  .. v1.0 ..
+  + in Start : Bool
+  + in Stop : Bool
+  + in Reset : Bool
+  + in ResetCounters : Bool
+  + in BinsEmptied : Bool
+  + in SafetyOk : Bool
+  + in EStopOk : Bool
+  + in DoorClosed : Bool
+  + in SafetyDiscrepancy : Bool
+  + in CellAtStation : Bool
+  + in MeasureDone : Bool
+  + in Voltage_V : Real
+  + in Resistance_mOhm : Real
+  + in PusherB_Ext : Bool
+  + in PusherB_Ret : Bool
+  + in PusherR_Ext : Bool
+  + in PusherR_Ret : Bool
+  + in Limits : UDT_GradeLimits
+  + in BinCapacity : Int
+  + out ConveyorRun : Bool
+  + out MeasureStart : Bool
+  + out ValvePusherB : Bool
+  + out ValvePusherR : Bool
+  + out State : Int
+  + out StateText : String
+  + out Step : Int
+  + out StopPending : Bool
+  + out AnyFault : Bool
+  + out Alarms : UDT_Alarms
+  + out Counters : UDT_Counters
+  + out LastCell : UDT_CellData
+  + out BinB_Count : Int
+  + out BinR_Count : Int
+  - lastStep : Int
+  - stepChanged : Bool
+  - cmdPushB : Bool
+  - cmdPushR : Bool
+  - cell : UDT_CellData
+  - nextId : DInt
+  - actState : Int
+  - actStep : Int
+  - stopReq : Bool
+  - alm : UDT_Alarms
+  - cnt : UDT_Counters
+  - binBCount : Int
+  - binRCount : Int
+}
+class "DB_HMI" as DB_HMI <<DB>> {
+  .. v1.0 ..
+  + Cmd : Struct
+  + Par : Struct
+  + Sts : Struct
+}
+class "FB_CellSortingMain" as FB_CellSortingMain <<FB>> {
+  .. v1.0 ..
+  + in SimMode : Bool
+}
+class "iDB_CellSortingMain" <<DB>> {
+  instance of FB_CellSortingMain
+}
+class "OB_CellSorting" as OB_CellSorting <<OB>> {
+  .. v1.0 ..
+}
+
+"iDB_CellSortingMain" ..> "FB_CellSortingMain" : instance DB of
+FB_CellSortingMain *-- FB_ProcessSim : sim
+FB_CellSortingMain *-- FB_SafetyMonitor : safety
+FB_CellSortingMain *-- FB_SortStation : station
+FB_CellSortingMain ..> DB_HMI : reads / writes
+FB_SafetyMonitor *-- FB_DualChannel : dcDoor
+FB_SafetyMonitor *-- FB_DualChannel : dcEStop
+FB_SortStation *-- FB_Cylinder : cylB
+FB_SortStation *-- FB_Cylinder : cylR
+FB_SortStation ..> FC_AnyFault : calls
+FB_SortStation ..> FC_GradeCell : calls
+FB_SortStation ..> UDT_Alarms
+FB_SortStation ..> UDT_CellData
+FB_SortStation ..> UDT_Counters
+FB_SortStation ..> UDT_GradeLimits
+FC_AnyFault ..> UDT_Alarms
+FC_GradeCell ..> UDT_GradeLimits
+OB_CellSorting --> "iDB_CellSortingMain" : calls every cycle
+@enduml

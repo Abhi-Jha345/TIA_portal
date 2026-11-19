@@ -1,0 +1,79 @@
+name: Release (CD)
+
+# Deployment pipeline. Triggered by a version tag (git tag v1.0.0 && git push --tags) or manually.
+# Stage 1 re-runs the complete CI test suite; nothing is packaged or deployed if a test fails.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write          # needed to create the GitHub release
+
+jobs:
+  test:
+    name: "Stage 1: tests"
+    uses: ./.github/workflows/ci.yml
+
+  package:
+    name: "Stage 2: build release package"
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: test-report
+          path: package/test-report
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: uml-diagrams
+          path: package/docs/uml
+
+      - name: Assemble package
+        run: |
+          VERSION="${GITHUB_REF_NAME:-manual}"
+          mkdir -p package/src package/docs package/hmi
+          cp src/*.scl src/block_versions.json package/src/
+          python3 tools/block_versions.py table | grep '^|' > block-versions.md
+          cp docs/*.pdf package/docs/
+          cp docs/uml/*.puml package/docs/uml/
+          cp hmi/*.py hmi/*.json package/hmi/
+          cp deploy/Deploy-ToTia.ps1 package/
+          git rev-parse HEAD > package/COMMIT
+          echo "$VERSION" > package/VERSION
+          (cd package && zip -r "../CellSortingStation-$VERSION.zip" .)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: CellSortingStation-*.zip
+
+      - name: Create GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: CellSortingStation-*.zip
+          body_path: block-versions.md          # block version table of this release
+          generate_release_notes: true
+
+  deploy-tia:
+    name: "Stage 3: import + compile in TIA Portal (self-hosted)"
+    needs: package
+    # Needs a Windows runner with TIA Portal V20, STEP 7 and Openness, registered with the
+    # labels below, and the repository variable TIA_RUNNER_ENABLED = true. Skipped otherwise.
+    if: vars.TIA_RUNNER_ENABLED == 'true'
+    runs-on: [self-hosted, windows, tia-v20]
+    environment: plant-engineering           # optional manual approval gate in GitHub settings
+    steps:
+      - uses: actions/checkout@v4
+      - name: Import SCL sources, generate blocks, compile, save
+        shell: powershell
+        run: >
+          ./deploy/Deploy-ToTia.ps1
+          -ProjectPath "${{ vars.TIA_PROJECT_PATH }}"
+          -TiaInstallPath "${{ vars.TIA_INSTALL_PATH }}"
+          -PlcName PLC_1
+          -SourceDir "$env:GITHUB_WORKSPACE/src"

@@ -1,0 +1,42 @@
+@startuml sequence_estop
+title E-stop during production and restart (SF1, stop category 0)
+autonumber
+skinparam sequenceMessageAlign left
+
+actor Operator
+participant "E-stop\n(2 NC contacts)" as ES
+participant "Reset button\n(hard-wired)" as RPB
+participant "FB_SafetyMonitor" as SM
+participant "FB_SortStation" as ST
+participant "Conveyor STO /\ndump valve" as ACT
+participant "HMI" as HMI
+
+== production running (EXECUTE) ==
+Operator -> ES : press
+ES -> SM : EStop_A = 0, EStop_B = 0
+activate SM
+SM -> SM : tripE, released := FALSE
+SM -> ACT : EnergyEnable = FALSE  (same scan)
+SM -> ST : SafetyOk = FALSE, EStopOk = FALSE
+deactivate SM
+activate ST
+ST -> ST : alarm EStop latched,\nstate := ABORTED
+ST -> ACT : conveyor, valves = OFF  (same scan)
+ST -> HMI : StateText = 'SAFETY STOP'
+deactivate ST
+
+== restart: two separate operator actions ==
+Operator -> ES : release
+SM -> HMI : ResetRequired = TRUE
+Operator -> RPB : press ... release
+RPB -> SM : falling edge (held < 5 s)
+SM -> ST : SafetyOk = TRUE
+SM -> ACT : EnergyEnable = TRUE
+Operator -> HMI : Reset
+HMI -> ST : Cmd.Reset (one-shot)
+ST -> ST : alarms cleared,\nRESETTING -> IDLE
+note over ST : no automatic restart:\nthe operator must press Start
+Operator -> HMI : Start
+HMI -> ST : Cmd.Start
+ST -> ST : EXECUTE
+@enduml

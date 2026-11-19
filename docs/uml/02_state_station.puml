@@ -1,0 +1,55 @@
+@startuml state_station
+!pragma layout smetana
+title FB_SortStation - mode state machine (PackML inspired) with EXECUTE step chain
+skinparam state {
+  BackgroundColor #E8F3F6
+  BorderColor #0B6E8A
+}
+
+[*] --> STOPPED : power-up
+STOPPED --> RESETTING : Reset
+RESETTING --> IDLE : both pushers retracted
+IDLE --> EXECUTE : Start
+
+state EXECUTE {
+  [*] --> WAIT_CELL
+  WAIT_CELL : step 100
+  WAIT_CELL : conveyor ON (held while a bin is full)
+  MEASURE : step 110
+  MEASURE : measuring unit started
+  GRADE : step 120
+  GRADE : FC_GradeCell, counters
+  EJECT : step 130
+  RETRACT : step 140
+
+  WAIT_CELL --> MEASURE : cell at light barrier
+  MEASURE --> GRADE : measurement done
+  GRADE --> EJECT : (one scan)
+  EJECT --> WAIT_CELL : [grade A] cell left station
+  EJECT --> RETRACT : [grade B / Reject] pusher extended
+  RETRACT --> WAIT_CELL : pushers home and cell gone
+  WAIT_CELL --> [*] : [stop pending]
+}
+EXECUTE -up-> IDLE : end of cycle\n[stop pending]
+
+state ABORTED #FBEAEA
+ABORTED : all actuators OFF
+ABORTED : alarms latched
+
+STOPPED --> ABORTED : fault / no safety release
+RESETTING --> ABORTED : fault
+IDLE --> ABORTED : fault
+EXECUTE --> ABORTED : fault, same scan (Fault_reaction)
+ABORTED --> RESETTING : Reset [SafetyOk]
+
+note right of EXECUTE
+  Step supervision (tonStep):
+  MEASURE, EJECT [A], RETRACT > 3 s -> fault
+  Pusher end positions: FB_Cylinder, 2 s
+end note
+note bottom of ABORTED
+  No automatic restart:
+  ABORTED -> RESETTING -> IDLE,
+  a new Start is always required.
+end note
+@enduml

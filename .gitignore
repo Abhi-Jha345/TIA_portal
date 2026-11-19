@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# test output
+test-results.xml
+scl-coverage.md
+
+# PlantUML: jar is downloaded by CI, rendered images are CI artifacts
+tools/plantuml/
+plantuml.jar
+generated.puml
+docs/uml/rendered/
+
+# TIA Portal project: binary, versioned through the SCL sources instead
+tia/
+*.ap20
+*.zap20

@@ -1,0 +1,42 @@
+@startuml deployment
+!pragma layout smetana
+title Deployment - controller, HMI, network and CI/CD pipeline
+
+node "Engineering PC" as eng {
+  artifact "TIA Portal V20 project\nCellSortingStation.ap20" as proj
+  artifact "Git repository\nsrc/*.scl, tests/, docs/" as repo
+}
+
+cloud "GitHub" as gh {
+  component "CI: SCL checks,\nblock versions,\n84 unit tests,\ncoverage gate" as ci
+  component "CD: release package\n(sources, docs, versions)" as cd
+}
+
+node "Windows runner\n(TIA V20 + Openness)" as runner {
+  component "Deploy-ToTia.ps1\nimport, generate, compile" as deploy
+}
+
+node "S7-1500 CPU 1516-3 PN/DP\n192.168.0.1" as plc {
+  component "OB_CellSorting" as ob
+  component "FB_CellSortingMain" as main
+  component "DB_HMI (DB1,\nstandard access)" as dbhmi
+  ob --> main
+  main --> dbhmi
+}
+
+node "PC station\nWinCC Unified PC RT V20\n192.168.0.2" as hmi {
+  component "Screen 'Station'\n42 tags, absolute addressing" as screen
+}
+
+node "Field (future)" as field {
+  component "F-CPU / F-I/O\nPROFIsafe:\nE-stop, door, STO,\ndump valve" as fio
+}
+
+repo --> ci : push / pull request
+ci --> cd : tag v* [tests passed]
+cd --> deploy : [TIA_RUNNER_ENABLED]
+deploy --> proj : Openness
+proj --> plc : download
+screen <--> dbhmi : HMI_Connection_1\nPROFINET / IE (PN_IE_1)
+plc ..> fio : replaces FB_ProcessSim\non the real machine
+@enduml

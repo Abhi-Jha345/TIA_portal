@@ -1,0 +1,818 @@
+FUNCTION "FC_GradeCell" : Int
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      Voltage_V : Real;
+      Resistance_mOhm : Real;
+      Limits : "UDT_GradeLimits";
+   END_VAR
+
+   VAR CONSTANT
+      GRADE_A : Int := 1;
+      GRADE_B : Int := 2;
+      GRADE_REJECT : Int := 3;
+   END_VAR
+
+BEGIN
+	// Classifies one battery cell from its measured voltage and internal resistance.
+	// Pure function: no state, so it can be unit tested in isolation.
+	// Plausibility first: R <= 0 or V <= 0 means a short circuit / contact fault at the
+	// measuring station, never a good cell (found by unit test I1/I2).
+	IF (#Resistance_mOhm <= 0.0) OR (#Voltage_V <= 0.0) THEN
+	    #FC_GradeCell := #GRADE_REJECT;
+	ELSIF (#Voltage_V >= #Limits.A_VoltMin) AND (#Voltage_V <= #Limits.A_VoltMax)
+	    AND (#Resistance_mOhm <= #Limits.A_ResMax_mOhm)
+	THEN
+	    #FC_GradeCell := #GRADE_A;
+	ELSIF (#Voltage_V >= #Limits.B_VoltMin) AND (#Voltage_V <= #Limits.B_VoltMax)
+	    AND (#Resistance_mOhm <= #Limits.B_ResMax_mOhm)
+	THEN
+	    #FC_GradeCell := #GRADE_B;
+	ELSE
+	    #FC_GradeCell := #GRADE_REJECT;
+	END_IF;
+END_FUNCTION
+
+FUNCTION "FC_AnyFault" : Bool
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      Alarms : "UDT_Alarms";
+      SafetyOk : Bool;
+   END_VAR
+
+BEGIN
+	// Single definition of "station must not run". Warnings (bin full) are not faults.
+	// Without the safety release the station may never run (no automatic restart).
+	#FC_AnyFault := #Alarms.EStop OR #Alarms.PusherB OR #Alarms.PusherR
+	                OR #Alarms.MeasureTimeout OR #Alarms.TransportTimeout
+	                OR #Alarms.DoorOpen OR #Alarms.SafetyDiscrepancy OR NOT #SafetyOk;
+END_FUNCTION
+
+FUNCTION_BLOCK "FB_Cylinder"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      CmdExtend : Bool;          // request: extend (FALSE = retract)
+      SensorExtended : Bool;     // end position sensor extended
+      SensorRetracted : Bool;    // end position sensor retracted
+      MoveTimeout : Time := T#2S;
+      Reset : Bool;              // acknowledge error
+   END_VAR
+
+   VAR_OUTPUT
+      ValveExtend : Bool;        // monostable valve, de-energised = retract (safe state)
+      IsExtended : Bool;
+      IsRetracted : Bool;
+      Error : Bool;
+      ErrorCode : Word;          // 16#0001 extend timeout, 16#0002 retract timeout, 16#0003 both sensors on
+   END_VAR
+
+   VAR
+      tonExtend : TON_TIME;
+      tonRetract : TON_TIME;
+      errLatched : Bool;         // latched error, kept until Reset
+      errCode : Word;
+      valveOn : Bool;
+   END_VAR
+
+BEGIN
+	// Reusable pneumatic cylinder with end position monitoring.
+	// On error the valve drops out so the cylinder goes to its safe (retracted) position.
+	IF #Reset THEN
+	    #errLatched := FALSE;
+	    #errCode := 16#0000;
+	END_IF;
+
+	#valveOn := #CmdExtend AND NOT #errLatched;
+	#IsExtended := #SensorExtended AND NOT #SensorRetracted;
+	#IsRetracted := #SensorRetracted AND NOT #SensorExtended;
+
+	#tonExtend(IN := #valveOn AND NOT #IsExtended, PT := #MoveTimeout);
+	#tonRetract(IN := NOT #valveOn AND NOT #IsRetracted, PT := #MoveTimeout);
+
+	IF NOT #errLatched THEN
+	    IF #SensorExtended AND #SensorRetracted THEN
+	        #errCode := 16#0003;
+	        #errLatched := TRUE;
+	    ELSIF #tonExtend.Q THEN
+	        #errCode := 16#0001;
+	        #errLatched := TRUE;
+	    ELSIF #tonRetract.Q THEN
+	        #errCode := 16#0002;
+	        #errLatched := TRUE;
+	    END_IF;
+	END_IF;
+
+	// output written after the fault check: the valve drops in the SAME scan the fault is
+	// detected (found by unit test B2, previously one scan late)
+	#ValveExtend := #CmdExtend AND NOT #errLatched;
+	#Error := #errLatched;
+	#ErrorCode := #errCode;
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK "FB_ProcessSim"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      ConveyorRun : Bool;
+      MeasureStart : Bool;
+      ValvePusherB : Bool;
+      ValvePusherR : Bool;
+      FeedEnable : Bool := TRUE;   // cells available upstream
+      JamPusherB : Bool;           // fault injection: pusher B never reaches end position
+      AirOk : Bool := TRUE;        // compressed air released by the safety function (dump valve open)
+   END_VAR
+
+   VAR_OUTPUT
+      CellAtStation : Bool;
+      MeasureDone : Bool;
+      Voltage_V : Real;
+      Resistance_mOhm : Real;
+      PusherB_Ext : Bool;
+      PusherB_Ret : Bool;
+      PusherR_Ext : Bool;
+      PusherR_Ret : Bool;
+   END_VAR
+
+   VAR
+      cellPresent : Bool;
+      seed : DInt := 12345;
+      rnd : Real;
+      tonArrive : TON_TIME;
+      tonLeave : TON_TIME;
+      tonMeasure : TON_TIME;
+      tonPBExt : TON_TIME;
+      tonPBRet : TON_TIME;
+      tonPRExt : TON_TIME;
+      tonPRRet : TON_TIME;
+      rtMeasure : R_TRIG;
+   END_VAR
+
+BEGIN
+	// Plant simulation so the station can be tested in PLCSIM without hardware.
+	// Replaces conveyor, light barrier, measuring unit and both pushers.
+
+	// Transport: a new cell arrives after the conveyor ran 1.5 s with an empty station,
+	// a present cell is carried away (to module assembly) after 0.8 s of conveyor run.
+	#tonArrive(IN := #ConveyorRun AND #FeedEnable AND NOT #cellPresent, PT := T#1500MS);
+	IF #tonArrive.Q THEN
+	    #cellPresent := TRUE;
+	END_IF;
+	#tonLeave(IN := #ConveyorRun AND #cellPresent, PT := T#800MS);
+	IF #tonLeave.Q THEN
+	    #cellPresent := FALSE;
+	END_IF;
+
+	// Pushers: end position sensors follow the valve after 0.4 s
+	// without air (safety function tripped) a pusher cannot extend
+	#tonPBExt(IN := #ValvePusherB AND #AirOk AND NOT #JamPusherB, PT := T#400MS);
+	#tonPBRet(IN := NOT #ValvePusherB, PT := T#400MS);
+	#tonPRExt(IN := #ValvePusherR AND #AirOk, PT := T#400MS);
+	#tonPRRet(IN := NOT #ValvePusherR, PT := T#400MS);
+	#PusherB_Ext := #tonPBExt.Q;
+	#PusherB_Ret := #tonPBRet.Q;
+	#PusherR_Ext := #tonPRExt.Q;
+	#PusherR_Ret := #tonPRRet.Q;
+	IF #PusherB_Ext OR #PusherR_Ext THEN
+	    #cellPresent := FALSE;   // cell pushed into the bin
+	END_IF;
+
+	// Measuring unit: answers 0.6 s after start with pseudo random values
+	#tonMeasure(IN := #MeasureStart AND #cellPresent, PT := T#600MS);
+	#rtMeasure(CLK := #tonMeasure.Q);
+	IF #rtMeasure.Q THEN
+	    #seed := (#seed * 75 + 74) MOD 65537;
+	    #rnd := DINT_TO_REAL(#seed) / 65537.0;
+	    #Voltage_V := 3.52 + #rnd * 0.26;
+	    #seed := (#seed * 75 + 74) MOD 65537;
+	    #rnd := DINT_TO_REAL(#seed) / 65537.0;
+	    #Resistance_mOhm := 12.0 + #rnd * 16.0;
+	    #seed := (#seed * 75 + 74) MOD 65537;
+	    IF DINT_TO_REAL(#seed) / 65537.0 < 0.08 THEN
+	        #Voltage_V := 3.20;   // occasional deep discharged cell
+	    END_IF;
+	END_IF;
+	#MeasureDone := #tonMeasure.Q;
+
+	#CellAtStation := #cellPresent;
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK "FB_DualChannel"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      ChA : Bool;                      // NC contact channel A, TRUE = circuit closed (safe)
+      ChB : Bool;                      // NC contact channel B
+      DiscrepancyTime : Time := T#500MS;
+      Ack : Bool;                      // acknowledge a discrepancy fault (one-scan pulse)
+   END_VAR
+
+   VAR_OUTPUT
+      Ok : Bool;                       // both channels closed and no discrepancy fault
+      Discrepancy : Bool;              // latched discrepancy fault
+   END_VAR
+
+   VAR
+      tonDisc : TON_TIME;
+      discLatched : Bool;
+      bothOpenSeen : Bool;
+   END_VAR
+
+BEGIN
+	// Two-channel evaluation with discrepancy monitoring (ISO 13849-1, category 3 behaviour).
+	// Channels that disagree longer than DiscrepancyTime point to a welded contact or a wire break.
+	// The fault can only be acknowledged after BOTH channels were open together, which proves
+	// that both contacts still switch.
+	#tonDisc(IN := #ChA XOR #ChB, PT := #DiscrepancyTime);
+	IF #tonDisc.Q THEN
+	    #discLatched := TRUE;
+	    #bothOpenSeen := FALSE;
+	END_IF;
+	IF #discLatched AND NOT #ChA AND NOT #ChB THEN
+	    #bothOpenSeen := TRUE;
+	END_IF;
+	IF #discLatched AND #bothOpenSeen AND #Ack THEN
+	    #discLatched := FALSE;
+	END_IF;
+
+	#Ok := #ChA AND #ChB AND NOT #discLatched;
+	#Discrepancy := #discLatched;
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK "FB_SafetyMonitor"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      EStop_A : Bool;                  // E-stop channel A, TRUE = not pressed
+      EStop_B : Bool;                  // E-stop channel B
+      Door_A : Bool;                   // guard door interlock channel A, TRUE = closed and locked
+      Door_B : Bool;                   // guard door interlock channel B
+      ResetPB : Bool;                  // safety reset push button (hard-wired, outside the hazard zone)
+      DiscrepancyTime : Time := T#500MS;
+      Cat1Delay : Time := T#1S;        // stop category 1: time for the controlled stop before energy is removed
+      ResetStuckTime : Time := T#5S;   // reset button held longer = treated as stuck / bridged
+   END_VAR
+
+   VAR_OUTPUT
+      EStopOk : Bool;
+      DoorClosed : Bool;
+      SafetyOk : Bool;                 // all safety functions released: machine may run
+      EnergyEnable : Bool;             // request for dump valve / STO release
+      StopCat0 : Bool;                 // E-stop active: uncontrolled stop (IEC 60204-1)
+      StopCat1 : Bool;                 // guard door open: controlled stop, then energy off
+      ResetRequired : Bool;            // circuits closed again, waiting for manual reset
+      Discrepancy : Bool;
+      ResetStuck : Bool;
+   END_VAR
+
+   VAR
+      dcEStop : "FB_DualChannel";
+      dcDoor : "FB_DualChannel";
+      resetPBOld : Bool;               // edge memory, start value FALSE: no reset edge in the first scan
+      tonStuck : TON_TIME;
+      tonCat1 : TON_TIME;
+      stuckLatched : Bool;
+      resetEdge : Bool;
+      tripE : Bool;
+      tripD : Bool;
+      released : Bool;                 // FALSE after power-up: no automatic start (IEC 60204-1)
+      energy : Bool;
+   END_VAR
+
+BEGIN
+	// Safety-related control functions SF1 (E-stop) and SF2 (guard door), see the safety concept.
+	// IMPORTANT: on the real machine SF1/SF2 are executed by an F-CPU (STEP 7 Safety, PROFIsafe
+	// F-I/O, PL d / category 3). This standard-PLC block mirrors the same behaviour for operation,
+	// diagnostics, the HMI and the unit tests. It is NOT a substitute for the F-program.
+
+	REGION Reset_button
+	    // reset only on RELEASE of the button (falling edge) and only if it was not held too long,
+	    // so a stuck or bridged button can never release the machine
+	    #tonStuck(IN := #ResetPB, PT := #ResetStuckTime);
+	    IF #tonStuck.Q THEN
+	        #stuckLatched := TRUE;
+	    END_IF;
+	    #resetEdge := #resetPBOld AND NOT #ResetPB AND NOT #stuckLatched;
+	    #resetPBOld := #ResetPB;
+	    IF NOT #ResetPB THEN
+	        #stuckLatched := FALSE;
+	    END_IF;
+	END_REGION
+
+	REGION Input_channels
+	    #dcEStop(ChA := #EStop_A, ChB := #EStop_B, DiscrepancyTime := #DiscrepancyTime, Ack := #resetEdge);
+	    #dcDoor(ChA := #Door_A, ChB := #Door_B, DiscrepancyTime := #DiscrepancyTime, Ack := #resetEdge);
+	    #tripE := NOT #dcEStop.Ok;
+	    #tripD := NOT #dcDoor.Ok;
+	END_REGION
+
+	REGION Release
+	    // a trip always removes the release; only a manual reset with closed circuits restores it
+	    IF #tripE OR #tripD THEN
+	        #released := FALSE;
+	    ELSIF #resetEdge THEN
+	        #released := TRUE;
+	    END_IF;
+	END_REGION
+
+	REGION Stop_categories
+	    #tonCat1(IN := #tripD AND NOT #tripE, PT := #Cat1Delay);
+	    IF #tripE THEN
+	        #energy := FALSE;                         // category 0: remove energy immediately
+	    ELSIF #tripD THEN
+	        #energy := #energy AND NOT #tonCat1.Q;    // category 1: controlled stop, then remove energy
+	    ELSE
+	        #energy := #released;
+	    END_IF;
+	END_REGION
+
+	REGION Outputs
+	    #EStopOk := #dcEStop.Ok;
+	    #DoorClosed := #dcDoor.Ok;
+	    #SafetyOk := #released AND NOT #tripE AND NOT #tripD;
+	    #EnergyEnable := #energy;
+	    #StopCat0 := #tripE;
+	    #StopCat1 := #tripD AND NOT #tripE;
+	    #ResetRequired := NOT #released AND NOT #tripE AND NOT #tripD;
+	    #Discrepancy := #dcEStop.Discrepancy OR #dcDoor.Discrepancy;
+	    #ResetStuck := #stuckLatched;
+	END_REGION
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK "FB_SortStation"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      Start : Bool;
+      Stop : Bool;
+      Reset : Bool;
+      ResetCounters : Bool;
+      BinsEmptied : Bool;
+      SafetyOk : Bool;           // from FB_SafetyMonitor: all safety functions released
+      EStopOk : Bool;
+      DoorClosed : Bool;
+      SafetyDiscrepancy : Bool;
+      CellAtStation : Bool;
+      MeasureDone : Bool;
+      Voltage_V : Real;
+      Resistance_mOhm : Real;
+      PusherB_Ext : Bool;
+      PusherB_Ret : Bool;
+      PusherR_Ext : Bool;
+      PusherR_Ret : Bool;
+      Limits : "UDT_GradeLimits";
+      BinCapacity : Int := 20;
+   END_VAR
+
+   VAR_OUTPUT
+      ConveyorRun : Bool;
+      MeasureStart : Bool;
+      ValvePusherB : Bool;
+      ValvePusherR : Bool;
+      State : Int;
+      StateText : String[24];
+      Step : Int;
+      StopPending : Bool;
+      AnyFault : Bool;
+      Alarms : "UDT_Alarms";
+      Counters : "UDT_Counters";
+      LastCell : "UDT_CellData";
+      BinB_Count : Int;
+      BinR_Count : Int;
+   END_VAR
+
+   VAR
+      cylB : "FB_Cylinder";
+      cylR : "FB_Cylinder";
+      rtStart : R_TRIG;
+      rtStop : R_TRIG;
+      rtReset : R_TRIG;
+      rtResetCnt : R_TRIG;
+      rtBinsEmptied : R_TRIG;
+      tonStep : TON_TIME;
+      lastStep : Int;
+      stepChanged : Bool;
+      cmdPushB : Bool;
+      cmdPushR : Bool;
+      cell : "UDT_CellData";
+      nextId : DInt;
+      actState : Int;            // internal state, copied to outputs at block end
+      actStep : Int;
+      stopReq : Bool;
+      alm : "UDT_Alarms";
+      cnt : "UDT_Counters";
+      binBCount : Int;
+      binRCount : Int;
+   END_VAR
+
+   VAR CONSTANT
+      ST_STOPPED : Int := 0;
+      ST_RESETTING : Int := 10;
+      ST_IDLE : Int := 20;
+      ST_EXECUTE : Int := 30;
+      ST_ABORTED : Int := 90;
+      STEP_WAIT_CELL : Int := 100;
+      STEP_MEASURE : Int := 110;
+      STEP_GRADE : Int := 120;
+      STEP_EJECT : Int := 130;
+      STEP_RETRACT : Int := 140;
+      GRADE_A : Int := 1;
+      GRADE_B : Int := 2;
+      GRADE_REJECT : Int := 3;
+   END_VAR
+
+BEGIN
+	// Battery cell test and sort station.
+	// Mode handling (PackML inspired): STOPPED -> RESETTING -> IDLE -> EXECUTE, any fault -> ABORTED.
+	// EXECUTE runs the step chain: wait cell -> measure -> grade -> eject -> retract.
+	// A stop request is only executed at the end of a cycle (no half sorted cell).
+
+	REGION Edges
+	    #rtStart(CLK := #Start);
+	    #rtStop(CLK := #Stop);
+	    #rtReset(CLK := #Reset);
+	    #rtResetCnt(CLK := #ResetCounters);
+	    #rtBinsEmptied(CLK := #BinsEmptied);
+	END_REGION
+
+	REGION Faults
+	    IF NOT #EStopOk THEN
+	        #alm.EStop := TRUE;
+	    END_IF;
+	    IF NOT #DoorClosed THEN
+	        #alm.DoorOpen := TRUE;
+	    END_IF;
+	    IF #SafetyDiscrepancy THEN
+	        #alm.SafetyDiscrepancy := TRUE;
+	    END_IF;
+	    #AnyFault := "FC_AnyFault"(Alarms := #alm, SafetyOk := #SafetyOk);
+	    IF #AnyFault THEN
+	        #actState := #ST_ABORTED;
+	    END_IF;
+	END_REGION
+
+	REGION Step_timer
+	    // ET restarts at 0 whenever the step changes: used for per-step supervision
+	    #stepChanged := #actStep <> #lastStep;
+	    #lastStep := #actStep;
+	    #tonStep(IN := (#actState = #ST_EXECUTE) AND NOT #stepChanged, PT := T#30S);
+	END_REGION
+
+	REGION State_machine
+	    // outputs default to OFF every scan, steps switch on what they need
+	    #ConveyorRun := FALSE;
+	    #MeasureStart := FALSE;
+	    #cmdPushB := FALSE;
+	    #cmdPushR := FALSE;
+
+	    CASE #actState OF
+	        #ST_STOPPED:
+	            IF #rtReset.Q THEN
+	                #actState := #ST_RESETTING;
+	            END_IF;
+
+	        #ST_RESETTING:
+	            // bring the station to home position: both pushers retracted
+	            IF #cylB.IsRetracted AND #cylR.IsRetracted THEN
+	                #actState := #ST_IDLE;
+	            END_IF;
+
+	        #ST_IDLE:
+	            IF #rtStart.Q THEN
+	                #stopReq := FALSE;
+	                #actStep := #STEP_WAIT_CELL;
+	                #actState := #ST_EXECUTE;
+	            END_IF;
+
+	        #ST_EXECUTE:
+	            IF #rtStop.Q THEN
+	                #stopReq := TRUE;
+	            END_IF;
+
+	            CASE #actStep OF
+	                #STEP_WAIT_CELL:
+	                    IF #stopReq THEN
+	                        #stopReq := FALSE;
+	                        #actState := #ST_IDLE;
+	                    ELSIF #alm.BinBFull OR #alm.BinRFull THEN
+	                        ;   // hold: wait until the operator empties the bins
+	                    ELSIF #CellAtStation THEN
+	                        #actStep := #STEP_MEASURE;
+	                    ELSE
+	                        #ConveyorRun := TRUE;
+	                    END_IF;
+
+	                #STEP_MEASURE:
+	                    #MeasureStart := TRUE;
+	                    IF #MeasureDone THEN
+	                        #cell.Voltage_V := #Voltage_V;
+	                        #cell.Resistance_mOhm := #Resistance_mOhm;
+	                        #actStep := #STEP_GRADE;
+	                    ELSIF #tonStep.ET > T#3S THEN
+	                        #alm.MeasureTimeout := TRUE;
+	                    END_IF;
+
+	                #STEP_GRADE:
+	                    #nextId := #nextId + 1;
+	                    #cell.Id := #nextId;
+	                    #cell.Grade := "FC_GradeCell"(Voltage_V := #cell.Voltage_V,
+	                                                  Resistance_mOhm := #cell.Resistance_mOhm,
+	                                                  Limits := #Limits);
+	                    #cnt.Total := #cnt.Total + 1;
+	                    CASE #cell.Grade OF
+	                        #GRADE_A:
+	                            #cnt.GradeA := #cnt.GradeA + 1;
+	                        #GRADE_B:
+	                            #cnt.GradeB := #cnt.GradeB + 1;
+	                        ELSE
+	                            #cnt.Reject := #cnt.Reject + 1;
+	                    END_CASE;
+	                    #LastCell := #cell;
+	                    #actStep := #STEP_EJECT;
+
+	                #STEP_EJECT:
+	                    CASE #cell.Grade OF
+	                        #GRADE_A:
+	                            // good cell continues on the conveyor to module assembly
+	                            #ConveyorRun := TRUE;
+	                            IF NOT #CellAtStation THEN
+	                                #actStep := #STEP_WAIT_CELL;
+	                            END_IF;
+	                        #GRADE_B:
+	                            #cmdPushB := TRUE;
+	                            IF #cylB.IsExtended THEN
+	                                #binBCount := #binBCount + 1;
+	                                #actStep := #STEP_RETRACT;
+	                            END_IF;
+	                        ELSE
+	                            #cmdPushR := TRUE;
+	                            IF #cylR.IsExtended THEN
+	                                #binRCount := #binRCount + 1;
+	                                #actStep := #STEP_RETRACT;
+	                            END_IF;
+	                    END_CASE;
+	                    IF (#cell.Grade = #GRADE_A) AND (#tonStep.ET > T#3S) THEN
+	                        #alm.TransportTimeout := TRUE;
+	                    END_IF;
+
+	                #STEP_RETRACT:
+	                    IF #cylB.IsRetracted AND #cylR.IsRetracted AND NOT #CellAtStation THEN
+	                        #actStep := #STEP_WAIT_CELL;
+	                    ELSIF #tonStep.ET > T#3S THEN
+	                        #alm.TransportTimeout := TRUE;
+	                    END_IF;
+
+	                ELSE
+	                    #actStep := #STEP_WAIT_CELL;
+	            END_CASE;
+
+	        #ST_ABORTED:
+	            // all actuators off (defaults above); leave only via reset with the safety function released
+	            #stopReq := FALSE;
+	            IF #rtReset.Q AND #SafetyOk THEN
+	                #alm.EStop := FALSE;
+	                #alm.DoorOpen := FALSE;
+	                #alm.SafetyDiscrepancy := FALSE;
+	                #alm.PusherB := FALSE;
+	                #alm.PusherR := FALSE;
+	                #alm.MeasureTimeout := FALSE;
+	                #alm.TransportTimeout := FALSE;
+	                #actState := #ST_RESETTING;
+	            END_IF;
+
+	        ELSE
+	            #actState := #ST_STOPPED;
+	    END_CASE;
+	END_REGION
+
+	REGION Actuators
+	    #cylB(CmdExtend := #cmdPushB,
+	          SensorExtended := #PusherB_Ext,
+	          SensorRetracted := #PusherB_Ret,
+	          MoveTimeout := T#2S,
+	          Reset := #rtReset.Q);
+	    #cylR(CmdExtend := #cmdPushR,
+	          SensorExtended := #PusherR_Ext,
+	          SensorRetracted := #PusherR_Ret,
+	          MoveTimeout := T#2S,
+	          Reset := #rtReset.Q);
+	    #ValvePusherB := #cylB.ValveExtend;
+	    #ValvePusherR := #cylR.ValveExtend;
+	    IF #cylB.Error THEN
+	        #alm.PusherB := TRUE;
+	    END_IF;
+	    IF #cylR.Error THEN
+	        #alm.PusherR := TRUE;
+	    END_IF;
+	END_REGION
+
+	REGION Fault_reaction
+	    // faults detected during this scan (cylinder errors, step timeouts) take effect in the
+	    // SAME scan: abort and force every actuator output off (found by unit test U3)
+	    #AnyFault := "FC_AnyFault"(Alarms := #alm, SafetyOk := #SafetyOk);
+	    IF #AnyFault THEN
+	        #actState := #ST_ABORTED;
+	        #ConveyorRun := FALSE;
+	        #MeasureStart := FALSE;
+	        #ValvePusherB := FALSE;
+	        #ValvePusherR := FALSE;
+	    END_IF;
+	END_REGION
+
+	REGION Bins_and_counters
+	    IF #rtBinsEmptied.Q THEN
+	        #binBCount := 0;
+	        #binRCount := 0;
+	    END_IF;
+	    #alm.BinBFull := #binBCount >= #BinCapacity;
+	    #alm.BinRFull := #binRCount >= #BinCapacity;
+
+	    IF #rtResetCnt.Q THEN
+	        #cnt.Total := 0;
+	        #cnt.GradeA := 0;
+	        #cnt.GradeB := 0;
+	        #cnt.Reject := 0;
+	    END_IF;
+	    IF #cnt.Total > 0 THEN
+	        #cnt.Yield_pct := DINT_TO_REAL(#cnt.GradeA + #cnt.GradeB)
+	                               / DINT_TO_REAL(#cnt.Total) * 100.0;
+	    ELSE
+	        #cnt.Yield_pct := 0.0;
+	    END_IF;
+	END_REGION
+
+	REGION Status_text
+	    CASE #actState OF
+	        #ST_STOPPED:
+	            #StateText := 'STOPPED';
+	        #ST_RESETTING:
+	            #StateText := 'RESETTING';
+	        #ST_IDLE:
+	            #StateText := 'IDLE';
+	        #ST_EXECUTE:
+	            IF #stopReq THEN
+	                #StateText := 'EXECUTE (stop pending)';
+	            ELSIF #alm.BinBFull OR #alm.BinRFull THEN
+	                #StateText := 'HELD - empty bins';
+	            ELSE
+	                #StateText := 'EXECUTE';
+	            END_IF;
+	        #ST_ABORTED:
+	            IF NOT #SafetyOk THEN
+	                #StateText := 'SAFETY STOP';
+	            ELSE
+	                #StateText := 'ABORTED - press Reset';
+	            END_IF;
+	        ELSE
+	            #StateText := '?';
+	    END_CASE;
+	END_REGION
+
+	REGION Outputs
+	    // outputs are written only here: internal state lives in statics
+	    #State := #actState;
+	    #Step := #actStep;
+	    #StopPending := #stopReq;
+	    #Alarms := #alm;
+	    #Counters := #cnt;
+	    #BinB_Count := #binBCount;
+	    #BinR_Count := #binRCount;
+	END_REGION
+END_FUNCTION_BLOCK
+
+DATA_BLOCK "DB_HMI"
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 1.0
+NON_RETAIN
+   VAR
+      Cmd : Struct
+         Start : Bool;
+         Stop : Bool;
+         Reset : Bool;
+         ResetCounters : Bool;
+         BinsEmptied : Bool;
+         SimEStop : Bool;            // simulated E-stop button: TRUE = pressed
+         SimJamPusherB : Bool;       // fault injection for the demo
+         SimDoorOpen : Bool;         // simulated guard door: TRUE = open
+         SimResetPB : Bool;          // simulated hard-wired safety reset button: TRUE = pressed
+         SimDiscrepancy : Bool;      // fault injection: E-stop channel B does not open (welded contact)
+      END_STRUCT;
+      Par : Struct
+         Limits : "UDT_GradeLimits";
+         BinCapacity : Int := 20;
+      END_STRUCT;
+      Sts : Struct
+         State : Int;
+         StateText : String[24];
+         Step : Int;
+         StopPending : Bool;
+         AnyFault : Bool;
+         ConveyorRun : Bool;
+         MeasureStart : Bool;
+         PusherB : Bool;
+         PusherR : Bool;
+         CellAtStation : Bool;
+         EnergyEnable : Bool;
+         SafetyOk : Bool;
+         ResetRequired : Bool;
+         Alarms : "UDT_Alarms";
+         Counters : "UDT_Counters";
+         LastCell : "UDT_CellData";
+         BinB_Count : Int;
+         BinR_Count : Int;
+      END_STRUCT;
+   END_VAR
+
+BEGIN
+
+END_DATA_BLOCK
+
+FUNCTION_BLOCK "FB_CellSortingMain"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+   VAR_INPUT
+      SimMode : Bool := TRUE;   // TRUE = plant simulated in software (PLCSIM demo)
+   END_VAR
+
+   VAR
+      safety : "FB_SafetyMonitor";
+      sim : "FB_ProcessSim";
+      station : "FB_SortStation";
+   END_VAR
+
+BEGIN
+	// Top level: wires safety monitor, simulation, station logic and the HMI interface DB together.
+	// With real hardware the sim instance and the Sim* commands are replaced by the I/O mapping
+	// (two-channel E-stop and guard door contacts, hard-wired reset button).
+
+	#safety(EStop_A := NOT "DB_HMI".Cmd.SimEStop,
+	        EStop_B := NOT ("DB_HMI".Cmd.SimEStop AND NOT "DB_HMI".Cmd.SimDiscrepancy),
+	        Door_A := NOT "DB_HMI".Cmd.SimDoorOpen,
+	        Door_B := NOT "DB_HMI".Cmd.SimDoorOpen,
+	        ResetPB := "DB_HMI".Cmd.SimResetPB);
+
+	#sim(ConveyorRun := #station.ConveyorRun,
+	     MeasureStart := #station.MeasureStart,
+	     ValvePusherB := #station.ValvePusherB,
+	     ValvePusherR := #station.ValvePusherR,
+	     FeedEnable := #SimMode,
+	     JamPusherB := "DB_HMI".Cmd.SimJamPusherB,
+	     AirOk := #safety.EnergyEnable);
+
+	#station(Start := "DB_HMI".Cmd.Start,
+	         Stop := "DB_HMI".Cmd.Stop,
+	         Reset := "DB_HMI".Cmd.Reset,
+	         ResetCounters := "DB_HMI".Cmd.ResetCounters,
+	         BinsEmptied := "DB_HMI".Cmd.BinsEmptied,
+	         SafetyOk := #safety.SafetyOk,
+	         EStopOk := #safety.EStopOk,
+	         DoorClosed := #safety.DoorClosed,
+	         SafetyDiscrepancy := #safety.Discrepancy,
+	         CellAtStation := #sim.CellAtStation,
+	         MeasureDone := #sim.MeasureDone,
+	         Voltage_V := #sim.Voltage_V,
+	         Resistance_mOhm := #sim.Resistance_mOhm,
+	         PusherB_Ext := #sim.PusherB_Ext,
+	         PusherB_Ret := #sim.PusherB_Ret,
+	         PusherR_Ext := #sim.PusherR_Ext,
+	         PusherR_Ret := #sim.PusherR_Ret,
+	         Limits := "DB_HMI".Par.Limits,
+	         BinCapacity := "DB_HMI".Par.BinCapacity);
+
+	// HMI push buttons are one-shot commands: clear after they were seen
+	"DB_HMI".Cmd.Start := FALSE;
+	"DB_HMI".Cmd.Stop := FALSE;
+	"DB_HMI".Cmd.Reset := FALSE;
+	"DB_HMI".Cmd.ResetCounters := FALSE;
+	"DB_HMI".Cmd.BinsEmptied := FALSE;
+
+	"DB_HMI".Sts.State := #station.State;
+	"DB_HMI".Sts.StateText := #station.StateText;
+	"DB_HMI".Sts.Step := #station.Step;
+	"DB_HMI".Sts.StopPending := #station.StopPending;
+	"DB_HMI".Sts.AnyFault := #station.AnyFault;
+	"DB_HMI".Sts.ConveyorRun := #station.ConveyorRun;
+	"DB_HMI".Sts.MeasureStart := #station.MeasureStart;
+	"DB_HMI".Sts.PusherB := #station.ValvePusherB;
+	"DB_HMI".Sts.PusherR := #station.ValvePusherR;
+	"DB_HMI".Sts.CellAtStation := #sim.CellAtStation;
+	"DB_HMI".Sts.EnergyEnable := #safety.EnergyEnable;
+	"DB_HMI".Sts.SafetyOk := #safety.SafetyOk;
+	"DB_HMI".Sts.ResetRequired := #safety.ResetRequired;
+	"DB_HMI".Sts.Alarms := #station.Alarms;
+	"DB_HMI".Sts.Counters := #station.Counters;
+	"DB_HMI".Sts.LastCell := #station.LastCell;
+	"DB_HMI".Sts.BinB_Count := #station.BinB_Count;
+	"DB_HMI".Sts.BinR_Count := #station.BinR_Count;
+END_FUNCTION_BLOCK
+
+DATA_BLOCK "iDB_CellSortingMain"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+NON_RETAIN
+"FB_CellSortingMain"
+
+BEGIN
+
+END_DATA_BLOCK

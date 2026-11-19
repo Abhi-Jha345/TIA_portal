@@ -1,0 +1,45 @@
+@startuml state_safety
+!pragma layout smetana
+title FB_SafetyMonitor - safety functions SF1 (E-stop) / SF2 (guard door) / SF3 (reset)
+skinparam state {
+  BackgroundColor #EEF5EA
+  BorderColor #2EA043
+}
+
+[*] --> RESET_REQUIRED : power-up\n(no automatic start)
+
+RESET_REQUIRED : circuits closed
+RESET_REQUIRED : EnergyEnable = FALSE
+RELEASED : SafetyOk = TRUE
+RELEASED : EnergyEnable = TRUE
+
+state STOP_CAT0 #FBEAEA
+STOP_CAT0 : E-stop pressed
+STOP_CAT0 : energy removed in the same scan
+state STOP_CAT1 #FDF6E3
+STOP_CAT1 : guard door open
+STOP_CAT1 : controlled stop, energy removed after 1 s
+state DISCREPANCY #FBEAEA
+DISCREPANCY : channels A / B disagree >= 500 ms
+DISCREPANCY : (welded contact / wire break)
+
+RESET_REQUIRED --> RELEASED : reset button RELEASED\n[held < 5 s, circuits closed]
+RELEASED --> STOP_CAT0 : E-stop
+RELEASED --> STOP_CAT1 : door opened
+STOP_CAT1 --> STOP_CAT0 : E-stop
+STOP_CAT0 --> RESET_REQUIRED : E-stop released
+STOP_CAT1 --> RESET_REQUIRED : door closed
+RESET_REQUIRED --> STOP_CAT0 : E-stop
+RESET_REQUIRED --> STOP_CAT1 : door opened
+RELEASED --> DISCREPANCY : channel mismatch >= 500 ms
+STOP_CAT0 --> DISCREPANCY : channel mismatch >= 500 ms
+DISCREPANCY --> RESET_REQUIRED : both channels opened\nAND reset
+
+note right of RESET_REQUIRED
+  Reset is ignored while
+  - a circuit is open
+  - the button is held >= 5 s (stuck)
+  Edge memory starts FALSE:
+  no reset edge in the first scan.
+end note
+@enduml

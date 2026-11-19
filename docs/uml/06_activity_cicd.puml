@@ -1,0 +1,37 @@
+@startuml activity_cicd
+title CI/CD pipeline - every deployment is gated by the tests
+
+start
+:push or pull request;
+partition "CI (ci.yml)" {
+  :check SCL sources are ASCII;
+  :check block versions\n(changed block => new VERSION,\ninterface change => new major);
+  if (version rules OK?) then (no)
+    #FBEAEA:fail: bump VERSION\nand run block_versions.py update;
+    stop
+  endif
+  :run unit tests on the real SCL\n(scan-based test runtime);
+  :SCL decision coverage >= 95 %?;
+  if (all tests passed and gate met?) then (no)
+    #FBEAEA:fail, nothing is deployed;
+    stop
+  endif
+  :render UML diagrams;
+}
+if (version tag v*?) then (yes)
+  partition "CD (release.yml)" {
+    :run the complete CI again;
+    :build release package\n(sources, block_versions.json, docs, diagrams);
+    :GitHub release with block version table;
+    if (TIA runner enabled?) then (yes)
+      :import SCL into TIA,\ngenerate blocks, compile;
+      if (compile errors?) then (yes)
+        #FBEAEA:fail, project not saved;
+        stop
+      endif
+      :save project;
+    endif
+  }
+endif
+stop
+@enduml

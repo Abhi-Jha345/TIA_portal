@@ -1,0 +1,8 @@
+ORGANIZATION_BLOCK "OB_CellSorting"
+TITLE = "Program cycle - battery cell sorting station"
+{ S7_Optimized_Access := 'TRUE' }
+VERSION : 1.0
+
+BEGIN
+	"iDB_CellSortingMain"(SimMode := TRUE);
+END_ORGANIZATION_BLOCK

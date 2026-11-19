@@ -1,0 +1,148 @@
+{
+ "ioValues": [
+  {
+   "item": "io_state",
+   "tag": "Sts_StateText"
+  },
+  {
+   "item": "io_binB",
+   "tag": "Sts_BinB_Count"
+  },
+  {
+   "item": "io_binR",
+   "tag": "Sts_BinR_Count"
+  },
+  {
+   "item": "io_kpi0",
+   "tag": "Sts_Total"
+  },
+  {
+   "item": "io_kpi1",
+   "tag": "Sts_Yield"
+  },
+  {
+   "item": "io_kpi2",
+   "tag": "Sts_GradeA"
+  },
+  {
+   "item": "io_kpi3",
+   "tag": "Sts_GradeB"
+  },
+  {
+   "item": "io_kpi4",
+   "tag": "Sts_Reject"
+  },
+  {
+   "item": "io_lc0",
+   "tag": "Sts_LastId"
+  },
+  {
+   "item": "io_lc1",
+   "tag": "Sts_LastVoltage"
+  },
+  {
+   "item": "io_lc2",
+   "tag": "Sts_LastRes"
+  },
+  {
+   "item": "io_lc3",
+   "tag": "Sts_LastGrade"
+  }
+ ],
+ "visible": [
+  {
+   "item": "lmp_fault_on",
+   "tag": "Sts_AnyFault"
+  },
+  {
+   "item": "pB_on",
+   "tag": "Sts_PusherB"
+  },
+  {
+   "item": "pR_on",
+   "tag": "Sts_PusherR"
+  },
+  {
+   "item": "conv_on",
+   "tag": "Sts_ConveyorRun"
+  },
+  {
+   "item": "cell",
+   "tag": "Sts_CellAtStation"
+  },
+  {
+   "item": "l_conv_on",
+   "tag": "Sts_ConveyorRun"
+  },
+  {
+   "item": "l_cell_on",
+   "tag": "Sts_CellAtStation"
+  },
+  {
+   "item": "l_meas_on",
+   "tag": "Sts_MeasureStart"
+  },
+  {
+   "item": "l_stop_on",
+   "tag": "Sts_StopPending"
+  },
+  {
+   "item": "alm0_on",
+   "tag": "Sts_AlmEStop"
+  },
+  {
+   "item": "alm1_on",
+   "tag": "Sts_AlmPusherB"
+  },
+  {
+   "item": "alm2_on",
+   "tag": "Sts_AlmPusherR"
+  },
+  {
+   "item": "alm3_on",
+   "tag": "Sts_AlmMeasure"
+  },
+  {
+   "item": "alm4_on",
+   "tag": "Sts_AlmTransport"
+  },
+  {
+   "item": "alm5_on",
+   "tag": "Sts_AlmBinBFull"
+  },
+  {
+   "item": "alm6_on",
+   "tag": "Sts_AlmBinRFull"
+  }
+ ],
+ "buttons": [
+  {
+   "item": "btn_start",
+   "tag": "Cmd_Start"
+  },
+  {
+   "item": "btn_stop",
+   "tag": "Cmd_Stop"
+  },
+  {
+   "item": "btn_reset",
+   "tag": "Cmd_Reset"
+  },
+  {
+   "item": "btn_bins",
+   "tag": "Cmd_BinsEmptied"
+  },
+  {
+   "item": "btn_rcnt",
+   "tag": "Cmd_ResetCounters"
+  },
+  {
+   "item": "btn_estop",
+   "tag": "Cmd_SimEStop"
+  },
+  {
+   "item": "btn_jam",
+   "tag": "Cmd_SimJamPusherB"
+  }
+ ]
+}

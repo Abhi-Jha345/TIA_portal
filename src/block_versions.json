@@ -1,0 +1,152 @@
+{
+  "DB_HMI": {
+    "kind": "DATA_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "baaca56ea01f8e57",
+    "body": "e3b0c44298fc1c14"
+  },
+  "FB_CellSortingMain": {
+    "kind": "FUNCTION_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "41b8150f2b8b001c",
+    "body": "8ca971ab34566bb4"
+  },
+  "FB_Cylinder": {
+    "kind": "FUNCTION_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "0e16f31b2787d429",
+    "body": "5de076a898576499"
+  },
+  "FB_DualChannel": {
+    "kind": "FUNCTION_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "7a92554680760f3a",
+    "body": "a985422c13e775b4"
+  },
+  "FB_ProcessSim": {
+    "kind": "FUNCTION_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "8801cdda406d372b",
+    "body": "a15410a70e507a4f"
+  },
+  "FB_SafetyMonitor": {
+    "kind": "FUNCTION_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "6735a0925030dd38",
+    "body": "e6a4854ce76edad4"
+  },
+  "FB_SortStation": {
+    "kind": "FUNCTION_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "d33ac56673ab6ea5",
+    "body": "daadcd96207cea98"
+  },
+  "FC_AnyFault": {
+    "kind": "FUNCTION",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "544979ca719138f5",
+    "body": "ed7200df5f354f6d"
+  },
+  "FC_GradeCell": {
+    "kind": "FUNCTION",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "ce106b53467a488a",
+    "body": "be90a479788bbdbc"
+  },
+  "OB_CellSorting": {
+    "kind": "ORGANIZATION_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "03_OB.scl",
+    "interface": "16e96b41200c62e4",
+    "body": "da55f727c2b68b32"
+  },
+  "UDT_Alarms": {
+    "kind": "TYPE",
+    "version": [
+      1,
+      0
+    ],
+    "file": "01_Types.scl",
+    "interface": "069d313adc6667bb",
+    "body": "e3b0c44298fc1c14"
+  },
+  "UDT_CellData": {
+    "kind": "TYPE",
+    "version": [
+      1,
+      0
+    ],
+    "file": "01_Types.scl",
+    "interface": "735b68d9bf7cc93d",
+    "body": "e3b0c44298fc1c14"
+  },
+  "UDT_Counters": {
+    "kind": "TYPE",
+    "version": [
+      1,
+      0
+    ],
+    "file": "01_Types.scl",
+    "interface": "6219b551fd93e98b",
+    "body": "e3b0c44298fc1c14"
+  },
+  "UDT_GradeLimits": {
+    "kind": "TYPE",
+    "version": [
+      1,
+      0
+    ],
+    "file": "01_Types.scl",
+    "interface": "0ab7ad7d94ff8c58",
+    "body": "e3b0c44298fc1c14"
+  },
+  "iDB_CellSortingMain": {
+    "kind": "DATA_BLOCK",
+    "version": [
+      1,
+      0
+    ],
+    "file": "02_Blocks.scl",
+    "interface": "d550a2adf5fb5829",
+    "body": "e3b0c44298fc1c14"
+  }
+}

@@ -1,0 +1,47 @@
+TYPE "UDT_CellData"
+VERSION : 1.0
+   STRUCT
+      Id : DInt;                 // running cell number
+      Voltage_V : Real;          // open circuit voltage [V]
+      Resistance_mOhm : Real;    // internal resistance [mOhm]
+      Grade : Int;               // 0 = none, 1 = A, 2 = B, 3 = Reject
+   END_STRUCT;
+END_TYPE
+
+TYPE "UDT_GradeLimits"
+VERSION : 1.0
+   STRUCT
+      A_VoltMin : Real := 3.60;
+      A_VoltMax : Real := 3.70;
+      A_ResMax_mOhm : Real := 18.0;
+      B_VoltMin : Real := 3.55;
+      B_VoltMax : Real := 3.75;
+      B_ResMax_mOhm : Real := 25.0;
+   END_STRUCT;
+END_TYPE
+
+TYPE "UDT_Counters"
+VERSION : 1.0
+   STRUCT
+      Total : DInt;
+      GradeA : DInt;
+      GradeB : DInt;
+      Reject : DInt;
+      Yield_pct : Real;          // (A + B) / Total * 100
+   END_STRUCT;
+END_TYPE
+
+TYPE "UDT_Alarms"
+VERSION : 1.0
+   STRUCT
+      EStop : Bool;              // fault: emergency stop circuit open
+      PusherB : Bool;            // fault: pusher B end position timeout / sensor error
+      PusherR : Bool;            // fault: pusher Reject end position timeout / sensor error
+      MeasureTimeout : Bool;     // fault: measuring unit did not answer
+      TransportTimeout : Bool;   // fault: cell did not leave the station
+      BinBFull : Bool;           // warning: bin B full, station holds
+      BinRFull : Bool;           // warning: reject bin full, station holds
+      DoorOpen : Bool;           // fault: guard door opened (SF2, stop category 1)
+      SafetyDiscrepancy : Bool;  // fault: two-channel safety input discrepancy (contact welded / wire break)
+   END_STRUCT;
+END_TYPE
