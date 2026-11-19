@@ -6,7 +6,13 @@ project: TYPE / FUNCTION / FUNCTION_BLOCK / DATA_BLOCK / ORGANIZATION_BLOCK, IF/
 CASE, REGION, assignments, FB and FC calls with named parameters, IEC TON_TIME / R_TRIG /
 F_TRIG, structs and UDTs, Bool/Int/DInt/Real/Time/Word/String.
 
-It is a test tool, not a PLC: no cycle-time effects, no retentivity, no overflow checks.
+Integer variables wrap on assignment like on the S7-1500 (Int 16 bit, DInt 32 bit, ... two's
+complement) and assigning a Real/Bool to an integer variable raises SclError (the TIA compiler
+rejects the implicit conversion). Limits - this is a test tool, not a PLC:
+  * no cycle-time / watchdog effects (a scan takes zero time; dt_ms is chosen by the test),
+  * no retentivity / warm restart behaviour, no process image or I/O timing,
+  * intermediate expression results are not truncated (only the assigned value is),
+  * results are not cross-checked against a real CPU (no PLCSIM licence available).
 Anything it does not understand raises SclError instead of guessing.
 """
 import copy
@@ -103,6 +109,7 @@ class Obj:
     def __init__(self, typename=""):
         object.__setattr__(self, "_v", {})
         object.__setattr__(self, "_type", typename)
+        object.__setattr__(self, "_int", {})          # member -> integer data type name
 
     def __getattr__(self, name):
         v = object.__getattribute__(self, "_v")
@@ -116,12 +123,16 @@ class Obj:
         key = name.lower()
         if key not in v:
             raise AttributeError(f"{object.__getattribute__(self, '_type')} has no member {name}")
-        v[key] = value
+        dtype = object.__getattribute__(self, "_int").get(key)
+        v[key] = wrap_int(dtype, value, name) if dtype else value
 
     def has(self, name):
         return name.lower() in object.__getattribute__(self, "_v")
 
-    def define(self, name, value):
+    def define(self, name, value, prim=None):
+        if prim in _INT_RANGE:
+            object.__getattribute__(self, "_int")[name.lower()] = prim
+            value = wrap_int(prim, value, name)
         object.__getattribute__(self, "_v")[name.lower()] = value
 
     def __repr__(self):
@@ -166,6 +177,24 @@ class Trig(Obj):
 _PRIM_DEFAULT = {"BOOL": False, "INT": 0, "DINT": 0, "SINT": 0, "UINT": 0, "UDINT": 0,
                  "BYTE": 0, "WORD": 0, "DWORD": 0, "REAL": 0.0, "LREAL": 0.0, "TIME": 0,
                  "STRING": ""}
+
+
+# integer data types: (bits, signed)
+_INT_RANGE = {"SINT": (8, True), "INT": (16, True), "DINT": (32, True), "TIME": (32, True),
+              "USINT": (8, False), "UINT": (16, False), "UDINT": (32, False),
+              "BYTE": (8, False), "WORD": (16, False), "DWORD": (32, False)}
+
+
+def wrap_int(dtype, value, name=""):
+    """Two's-complement wrap of an assigned value to the declared integer type."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise SclError(f"type mismatch: {type(value).__name__} value {value!r} assigned to "
+                       f"{dtype} variable {name} (needs explicit conversion)")
+    bits, signed = _INT_RANGE[dtype]
+    value &= (1 << bits) - 1
+    if signed and value >= 1 << (bits - 1):
+        value -= 1 << bits
+    return value
 
 
 # --------------------------------------------------------------------------- parser
@@ -537,7 +566,7 @@ class Plc:
             else:
                 obj = Obj(b.name)
                 for name, typ, init in b.sections.get("static", []):
-                    obj.define(name, self.make_value(typ, init))
+                    obj.define(name, self.make_value(typ, init), _prim(typ))
                 self.dbs[b.name.lower()] = obj
 
     # instances
@@ -562,7 +591,7 @@ class Plc:
     def _make_struct(self, typename, members):
         obj = Obj(typename)
         for name, mtyp, minit in members:
-            obj.define(name, self.make_value(mtyp, minit))
+            obj.define(name, self.make_value(mtyp, minit), _prim(mtyp))
         return obj
 
     def _make_named(self, info):
@@ -570,7 +599,7 @@ class Plc:
         if key in self.types:
             obj = Obj(info)
             for name, mtyp, minit in self.types[key].sections["static"]:
-                obj.define(name, self.make_value(mtyp, minit))
+                obj.define(name, self.make_value(mtyp, minit), _prim(mtyp))
             return obj
         if key in self.fbs:
             return self.new_instance(info)
@@ -581,7 +610,7 @@ class Plc:
         inst = Obj(fb.name)
         for section in ("input", "output", "inout", "static"):
             for name, typ, init in fb.sections.get(section, []):
-                inst.define(name, self.make_value(typ, init))
+                inst.define(name, self.make_value(typ, init), _prim(typ))
         object.__setattr__(inst, "_fb", fb)
         return inst
 
@@ -616,17 +645,17 @@ class Plc:
             return
         fb = object.__getattribute__(inst, "_fb")
         for name, typ, init in fb.sections.get("temp", []):
-            inst.define(name, self.make_value(typ, init))
+            inst.define(name, self.make_value(typ, init), _prim(typ))
         self.exec_body(fb.body, Frame(inst, self.constants_of(fb)))
 
     def _call_fc(self, fc, args):
         vars_obj = Obj(fc.name)
         for section in ("input", "output", "inout", "temp", "static"):
             for name, typ, init in fc.sections.get(section, []):
-                vars_obj.define(name, self.make_value(typ, init))
+                vars_obj.define(name, self.make_value(typ, init), _prim(typ))
         for k, v in args.items():
             setattr(vars_obj, k, copy.deepcopy(v))
-        vars_obj.define(fc.name.lower(), self.make_value(fc.ret_type))
+        vars_obj.define(fc.name.lower(), self.make_value(fc.ret_type), _prim(fc.ret_type))
         self.exec_body(fc.body, Frame(vars_obj, self.constants_of(fc)))
         return getattr(vars_obj, fc.name.lower())
 
@@ -755,6 +784,10 @@ class Plc:
         if fn is None:
             raise SclError(f"operator {op} not supported")
         return fn(a, b)
+
+
+def _prim(typ):
+    return typ[1] if typ[0] == "prim" else None
 
 
 def _logic(bool_fn, int_fn):

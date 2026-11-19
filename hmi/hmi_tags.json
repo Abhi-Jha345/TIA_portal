@@ -1,0 +1,262 @@
+{
+ "_comment": "HMI tags of WinCC Unified HMI_RT_1, tag table 'Station', connection HMI_Connection_1 (non-integrated, absolute addressing). Checked in CI by tools/db_layout.py check against the layout computed from src/*.scl. Created/verified in TIA Portal V20 on 2026-11-19.",
+ "hmi_device": "HMI_RT_1",
+ "tag_table": "Station",
+ "connection": "HMI_Connection_1",
+ "db": "DB_HMI",
+ "db_number": 1,
+ "tags": [
+  {
+   "name": "Cmd_Start",
+   "member": "Cmd.Start",
+   "type": "Bool",
+   "address": "%DB1.DBX0.0"
+  },
+  {
+   "name": "Cmd_Stop",
+   "member": "Cmd.Stop",
+   "type": "Bool",
+   "address": "%DB1.DBX0.1"
+  },
+  {
+   "name": "Cmd_Reset",
+   "member": "Cmd.Reset",
+   "type": "Bool",
+   "address": "%DB1.DBX0.2"
+  },
+  {
+   "name": "Cmd_ResetCounters",
+   "member": "Cmd.ResetCounters",
+   "type": "Bool",
+   "address": "%DB1.DBX0.3"
+  },
+  {
+   "name": "Cmd_BinsEmptied",
+   "member": "Cmd.BinsEmptied",
+   "type": "Bool",
+   "address": "%DB1.DBX0.4"
+  },
+  {
+   "name": "Cmd_SimEStop",
+   "member": "Cmd.SimEStop",
+   "type": "Bool",
+   "address": "%DB1.DBX0.5"
+  },
+  {
+   "name": "Cmd_SimJamPusherB",
+   "member": "Cmd.SimJamPusherB",
+   "type": "Bool",
+   "address": "%DB1.DBX0.6"
+  },
+  {
+   "name": "Cmd_SimDoorOpen",
+   "member": "Cmd.SimDoorOpen",
+   "type": "Bool",
+   "address": "%DB1.DBX0.7"
+  },
+  {
+   "name": "Cmd_SimResetPB",
+   "member": "Cmd.SimResetPB",
+   "type": "Bool",
+   "address": "%DB1.DBX1.0"
+  },
+  {
+   "name": "Cmd_SimDiscrepancy",
+   "member": "Cmd.SimDiscrepancy",
+   "type": "Bool",
+   "address": "%DB1.DBX1.1"
+  },
+  {
+   "name": "Sts_State",
+   "member": "Sts.State",
+   "type": "Int",
+   "address": "%DB1.DBW28"
+  },
+  {
+   "name": "Sts_StateText",
+   "member": "Sts.StateText",
+   "type": "String",
+   "address": "%DB1.DBX30.0"
+  },
+  {
+   "name": "Sts_StopPending",
+   "member": "Sts.StopPending",
+   "type": "Bool",
+   "address": "%DB1.DBX58.0"
+  },
+  {
+   "name": "Sts_AnyFault",
+   "member": "Sts.AnyFault",
+   "type": "Bool",
+   "address": "%DB1.DBX58.1"
+  },
+  {
+   "name": "Sts_ConveyorRun",
+   "member": "Sts.ConveyorRun",
+   "type": "Bool",
+   "address": "%DB1.DBX58.2"
+  },
+  {
+   "name": "Sts_MeasureStart",
+   "member": "Sts.MeasureStart",
+   "type": "Bool",
+   "address": "%DB1.DBX58.3"
+  },
+  {
+   "name": "Sts_PusherB",
+   "member": "Sts.PusherB",
+   "type": "Bool",
+   "address": "%DB1.DBX58.4"
+  },
+  {
+   "name": "Sts_PusherR",
+   "member": "Sts.PusherR",
+   "type": "Bool",
+   "address": "%DB1.DBX58.5"
+  },
+  {
+   "name": "Sts_CellAtStation",
+   "member": "Sts.CellAtStation",
+   "type": "Bool",
+   "address": "%DB1.DBX58.6"
+  },
+  {
+   "name": "Sts_EnergyEnable",
+   "member": "Sts.EnergyEnable",
+   "type": "Bool",
+   "address": "%DB1.DBX58.7"
+  },
+  {
+   "name": "Sts_SafetyOk",
+   "member": "Sts.SafetyOk",
+   "type": "Bool",
+   "address": "%DB1.DBX59.0"
+  },
+  {
+   "name": "Sts_ResetRequired",
+   "member": "Sts.ResetRequired",
+   "type": "Bool",
+   "address": "%DB1.DBX59.1"
+  },
+  {
+   "name": "Sts_AlmEStop",
+   "member": "Sts.Alarms.EStop",
+   "type": "Bool",
+   "address": "%DB1.DBX60.0"
+  },
+  {
+   "name": "Sts_AlmPusherB",
+   "member": "Sts.Alarms.PusherB",
+   "type": "Bool",
+   "address": "%DB1.DBX60.1"
+  },
+  {
+   "name": "Sts_AlmPusherR",
+   "member": "Sts.Alarms.PusherR",
+   "type": "Bool",
+   "address": "%DB1.DBX60.2"
+  },
+  {
+   "name": "Sts_AlmMeasure",
+   "member": "Sts.Alarms.MeasureTimeout",
+   "type": "Bool",
+   "address": "%DB1.DBX60.3"
+  },
+  {
+   "name": "Sts_AlmTransport",
+   "member": "Sts.Alarms.TransportTimeout",
+   "type": "Bool",
+   "address": "%DB1.DBX60.4"
+  },
+  {
+   "name": "Sts_AlmBinBFull",
+   "member": "Sts.Alarms.BinBFull",
+   "type": "Bool",
+   "address": "%DB1.DBX60.5"
+  },
+  {
+   "name": "Sts_AlmBinRFull",
+   "member": "Sts.Alarms.BinRFull",
+   "type": "Bool",
+   "address": "%DB1.DBX60.6"
+  },
+  {
+   "name": "Sts_AlmDoorOpen",
+   "member": "Sts.Alarms.DoorOpen",
+   "type": "Bool",
+   "address": "%DB1.DBX60.7"
+  },
+  {
+   "name": "Sts_AlmDiscrepancy",
+   "member": "Sts.Alarms.SafetyDiscrepancy",
+   "type": "Bool",
+   "address": "%DB1.DBX61.0"
+  },
+  {
+   "name": "Sts_Total",
+   "member": "Sts.Counters.Total",
+   "type": "DInt",
+   "address": "%DB1.DBD62"
+  },
+  {
+   "name": "Sts_GradeA",
+   "member": "Sts.Counters.GradeA",
+   "type": "DInt",
+   "address": "%DB1.DBD66"
+  },
+  {
+   "name": "Sts_GradeB",
+   "member": "Sts.Counters.GradeB",
+   "type": "DInt",
+   "address": "%DB1.DBD70"
+  },
+  {
+   "name": "Sts_Reject",
+   "member": "Sts.Counters.Reject",
+   "type": "DInt",
+   "address": "%DB1.DBD74"
+  },
+  {
+   "name": "Sts_Yield",
+   "member": "Sts.Counters.Yield_pct",
+   "type": "Real",
+   "address": "%DB1.DBD78"
+  },
+  {
+   "name": "Sts_LastId",
+   "member": "Sts.LastCell.Id",
+   "type": "DInt",
+   "address": "%DB1.DBD82"
+  },
+  {
+   "name": "Sts_LastVoltage",
+   "member": "Sts.LastCell.Voltage_V",
+   "type": "Real",
+   "address": "%DB1.DBD86"
+  },
+  {
+   "name": "Sts_LastRes",
+   "member": "Sts.LastCell.Resistance_mOhm",
+   "type": "Real",
+   "address": "%DB1.DBD90"
+  },
+  {
+   "name": "Sts_LastGrade",
+   "member": "Sts.LastCell.Grade",
+   "type": "Int",
+   "address": "%DB1.DBW94"
+  },
+  {
+   "name": "Sts_BinB_Count",
+   "member": "Sts.BinB_Count",
+   "type": "Int",
+   "address": "%DB1.DBW96"
+  },
+  {
+   "name": "Sts_BinR_Count",
+   "member": "Sts.BinR_Count",
+   "type": "Int",
+   "address": "%DB1.DBW98"
+  }
+ ]
+}

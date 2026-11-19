@@ -1,0 +1,14 @@
+# Keeps the SHA-pinned GitHub Actions and the Python test dependencies up to date.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: pip
+    directory: /tests
+    schedule:
+      interval: weekly

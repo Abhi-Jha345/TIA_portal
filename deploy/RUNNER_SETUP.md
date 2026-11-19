@@ -4,6 +4,9 @@ Stage 3 of `.github/workflows/release.yml` runs on this laptop. Do these steps o
 
 ## 1. Secure the repository first
 
+Done 2026-11-19: fork PR workflows need approval for all external contributors, `main` is
+protected (required check *SCL checks and unit tests*), actions are SHA-pinned.
+
 The repository is public. With a self-hosted runner, a pull request from anyone could change
 a workflow to execute code on this machine. Choose one:
 
@@ -33,6 +36,7 @@ a workflow to execute code on this machine. Choose one:
 |---|---|
 | `TIA_RUNNER_ENABLED` | `true` |
 | `TIA_INSTALL_PATH` | `D:\siemens\tia\Portal V20` |
+| `TIA_HMI_NAME` | optional; default `HMI_RT_1`, `none` skips the HMI compile |
 | `TIA_PROJECT_PATH` | path to a **copy** of the project, e.g. `D:\siemens\deploy-target\CellSortingStation\CellSortingStation.ap20` |
 
 Use a copy: Openness cannot open a project that is already open in the TIA Portal window.
@@ -50,7 +54,10 @@ powershell -ExecutionPolicy Bypass -File deploy\Deploy-ToTia.ps1 ^
   -TiaInstallPath "D:\siemens\tia\Portal V20"
 ```
 
-Expected end of output: `Compile: Success errors=0 warnings=0` and `Project saved.`
+Expected output: `archive: ..._before_manual_<time>.zap20`, `pinned DB_HMI = DB1`,
+`Compile PLC: Success errors=0 ...`, `Compile HMI: ...errors=0`, `Project saved.` and the
+archive of the deployed state. Archives go to `<project folder>\..ackups` (newest 10 kept,
+`-BackupDir` / `-KeepBackups` to change). Restore: TIA Portal > Project > Retrieve.
 
 ## 5. Deploy
 

@@ -13,10 +13,14 @@ Rules enforced by `check` (used in CI):
   * new block                  -> ok (listed); removed block -> listed
   * manifest not up to date    -> error ("run: python tools/block_versions.py update")
 
+Dependencies: a block's interface fingerprint includes the (effective) interface of every
+UDT / FB it references, so changing a UDT forces a major bump of all blocks using it.
+
 Usage:
   python tools/block_versions.py check            # CI gate, exit 1 on violation
   python tools/block_versions.py update           # after a valid bump: rewrite the manifest
   python tools/block_versions.py table            # markdown table (release notes)
+  python tools/block_versions.py rebaseline       # only after changing this fingerprint algorithm
 """
 import hashlib
 import json
@@ -67,10 +71,41 @@ def parse_blocks(src_dir=SRC, files=SOURCES):
             head, sep, body = chunk.partition("\nBEGIN")
             if kind == "TYPE":
                 head, body = chunk, ""
+            own_head = head[m.end() - m.start():]
             blocks[name] = {"kind": kind, "version": version, "file": fname,
-                            "interface": _digest(head[m.end() - m.start():]),
-                            "body": _digest(body)}
+                            "interface": _digest(own_head),
+                            "body": _digest(body),
+                            "_uses": set(re.findall(r'"([^"]+)"', _normalise(own_head)))}
+    _propagate_dependencies(blocks)
+    for b in blocks.values():
+        del b["_uses"]
     return blocks
+
+
+def _propagate_dependencies(blocks):
+    """A block's interface includes the interfaces of the UDTs / FBs it declares.
+
+    Changing UDT_Alarms therefore changes the interface fingerprint of every block that has a
+    UDT_Alarms parameter or static, and of every FB that contains such a block as multi-instance
+    (transitively): all of them need a new major version.
+    """
+    resolved = {}
+
+    def effective(name, stack=()):
+        if name in resolved:
+            return resolved[name]
+        if name in stack:
+            raise ValueError(f"cyclic type dependency: {' -> '.join(stack + (name,))}")
+        b = blocks[name]
+        deps = sorted(d for d in b["_uses"] if d in blocks and d != name)
+        combined = b["interface"] + "".join(effective(d, stack + (name,)) for d in deps)
+        resolved[name] = hashlib.sha256(combined.encode()).hexdigest()[:16] if deps else b["interface"]
+        return resolved[name]
+
+    for name in blocks:
+        effective(name)
+    for name, value in resolved.items():
+        blocks[name]["interface"] = value
 
 
 def load_manifest(path=MANIFEST):
@@ -133,7 +168,7 @@ def main(argv):
         for name, b in sorted(current.items()):
             print(f"| {name} | {b['kind']} | {fmt(b['version'])} |")
         return 0
-    if errors:
+    if cmd != "rebaseline" and errors:
         print("\nVERSION ERRORS:")
         for e in errors:
             print("  " + e)
@@ -141,6 +176,15 @@ def main(argv):
     if cmd == "update":
         MANIFEST.write_text(_manifest_text(current), encoding="utf-8")
         print(f"manifest written: {len(current)} blocks")
+        return 0
+    if cmd == "rebaseline":
+        # only after a change of the fingerprint algorithm itself: versions must be unchanged
+        changed = [n for n in current if n in released and current[n]["version"] != released[n]["version"]]
+        if changed:
+            print("rebaseline refused: versions changed for " + ", ".join(changed))
+            return 1
+        MANIFEST.write_text(_manifest_text(current), encoding="utf-8")
+        print(f"manifest re-baselined (fingerprint algorithm change): {len(current)} blocks")
         return 0
     if _manifest_text(current) != (MANIFEST.read_text(encoding="utf-8") if MANIFEST.exists() else ""):
         print("\nManifest is not up to date: run  python tools/block_versions.py update  and commit it.")

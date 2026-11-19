@@ -94,6 +94,21 @@ def test_E7_version_decrease_fails(work):
     assert any("lower than released" in e for e in errors)
 
 
+def test_E8_udt_change_forces_major_bump_of_users(work):
+    """Changing UDT_Alarms changes the interface of every block that uses it (transitively)."""
+    folder, released = work
+    path = folder / "01_Types.scl"
+    text = path.read_text(encoding="utf-8")
+    text = text.replace("      SafetyDiscrepancy : Bool;", "      SafetyDiscrepancy : Bool;\n      Spare : Bool;", 1)
+    text = text.replace('TYPE "UDT_Alarms"\nVERSION : 1.0', 'TYPE "UDT_Alarms"\nVERSION : 2.0', 1)
+    path.write_text(text, encoding="utf-8")
+    errors, _ = errors_after(folder, released)
+    users = {e.split(":")[0] for e in errors if "INTERFACE changed" in e}
+    # direct users and the FB that contains FB_SortStation as multi-instance
+    assert {"FC_AnyFault", "FB_SortStation", "DB_HMI", "FB_CellSortingMain"} <= users
+    assert "FC_GradeCell" not in users                 # does not use UDT_Alarms
+
+
 def test_B1_version_outside_tia_range_rejected(work):
     folder, _ = work
     edit(folder, FC_HEADER, FC_HEADER.replace("1.0", "16.0"))
