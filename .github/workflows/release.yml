@@ -20,14 +20,14 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: test-report
           path: package/test-report
 
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: uml-diagrams
           path: package/docs/uml
@@ -46,14 +46,14 @@ jobs:
           echo "$VERSION" > package/VERSION
           (cd package && zip -r "../CellSortingStation-$VERSION.zip" .)
 
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: release-package
           path: CellSortingStation-*.zip
 
       - name: Create GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           files: CellSortingStation-*.zip
           body_path: block-versions.md          # block version table of this release
@@ -68,7 +68,7 @@ jobs:
     runs-on: [self-hosted, windows, tia-v20]
     environment: plant-engineering           # optional manual approval gate in GitHub settings
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Backup, import SCL sources, pin DB_HMI, compile PLC + HMI, save, archive
         id: deploy
         shell: powershell
@@ -83,7 +83,7 @@ jobs:
           -Label "${{ github.ref_name }}"
 
       - name: Upload deployed TIA project archive
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: tia-project-archive
           path: ${{ steps.deploy.outputs.archive }}
@@ -91,6 +91,6 @@ jobs:
 
       - name: Attach TIA project archive to the release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           files: ${{ steps.deploy.outputs.archive }}
