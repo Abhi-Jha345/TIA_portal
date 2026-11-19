@@ -14,8 +14,8 @@
   Requirements on the runner: Windows, TIA Portal V20 with STEP 7 and Openness installed,
   runner account member of the local group "Siemens TIA Openness".
 
-  STATUS: written for the pipeline, NOT yet executed on a runner. Validate it once on a copy
-  of the project before enabling stage 3 (repository variable TIA_RUNNER_ENABLED).
+  STATUS: tested 2026-11-19 on a copy of the project with TIA Portal V20: 11 blocks and
+  4 types regenerated, compile 0 errors / 0 warnings, project saved.
 #>
 param(
     [Parameter(Mandatory)] [string] $ProjectPath,
@@ -26,7 +26,35 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $sources = @('01_Types.scl', '02_Blocks.scl', '03_OB.scl')     # generation order matters
-Add-Type -Path (Join-Path $TiaInstallPath 'PublicAPI\V20\Siemens.Engineering.dll')
+# Openness: load the API with LoadFrom and resolve its dependencies from the TIA folders
+# (Add-Type would enumerate all types and fail on dependencies it cannot locate).
+# The resolver is compiled C#: a PowerShell script block as AssemblyResolve handler recurses
+# into assembly resolution itself and ends in a StackOverflowException.
+Add-Type -TypeDefinition @'
+using System;
+using System.IO;
+using System.Reflection;
+public static class TiaAssemblyResolver {
+    private static string[] _dirs;
+    public static void Register(string[] dirs) {
+        _dirs = dirs;
+        AppDomain.CurrentDomain.AssemblyResolve += Resolve;
+    }
+    private static Assembly Resolve(object sender, ResolveEventArgs args) {
+        string name = new AssemblyName(args.Name).Name;
+        if (name.EndsWith(".resources")) return null;
+        foreach (string dir in _dirs) {
+            string candidate = Path.Combine(dir, name + ".dll");
+            if (File.Exists(candidate)) return Assembly.LoadFrom(candidate);
+        }
+        return null;
+    }
+}
+'@
+[TiaAssemblyResolver]::Register(@((Join-Path $TiaInstallPath 'PublicAPI\V20'),
+                                  (Join-Path $TiaInstallPath 'Bin\PublicAPI'),
+                                  (Join-Path $TiaInstallPath 'Bin')))
+[void][System.Reflection.Assembly]::LoadFrom((Join-Path $TiaInstallPath 'PublicAPI\V20\Siemens.Engineering.dll'))
 
 function Get-Service([object] $obj, [type] $serviceType) {
     # PowerShell cannot call the generic GetService<T>() directly

@@ -42,7 +42,7 @@ so every deployment waits for your approval.
 
 ## 4. First run - test the script by hand
 
-`Deploy-ToTia.ps1` has not been executed on a runner yet. Try it once manually on the copy:
+Done on 2026-11-19 (compile 0 errors / 0 warnings, project saved). To repeat the test:
 
 ```
 powershell -ExecutionPolicy Bypass -File deploy\Deploy-ToTia.ps1 ^
